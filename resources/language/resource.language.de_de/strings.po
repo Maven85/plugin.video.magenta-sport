@@ -21,8 +21,8 @@ msgid "Telekom Sport"
 msgstr ""
 
 msgctxt "Addon Description"
-msgid "Telekom Sport is a portal for live Icehockey, Basketball, German 3rd Ligue, Sky Handball, Sky Bundeliga/Champions-League conferences & womans football matches."
-msgstr "Telekom Sport ist ein Portal für Live Eishockey, Basketball, 3. Lig, Sky Handball, Sky Bundeliga/Champions-League Konferenzen & Frauenfußball Bundesliga Übertragungen."
+msgid "Telekom Sport is a portal for Icehockey, Basketball, German 3rd Ligue, Sky Handball, Sky Bundeliga/Champions-League conferences, womans football matches, FC Bayern.tv live & top fights from boxing, MMA, kickboxing and more."
+msgstr "Telekom Sport ist ein Portal für Eishockey, Basketball, 3. Liga, Sky Handball, Sky Bundeliga/Champions-League Konferenzen, Frauenfußball Bundesliga, FC Bayern.tv live & Top-Fights aus Boxen, MMA, Kickboxen u.v.m."
 
 msgctxt "Addon Disclaimer"
 msgid "Unofficial Addon - Use at your own risk. The plugin is not commisioned by Deutsche Telekom."
@@ -70,7 +70,7 @@ msgstr "Anmeldedaten verschlüsseln"
 
 msgctxt "#32011"
 msgid "Use Inputstream (if available)"
-msgstr "Nutze Inputstream zum abspielen (falls verfügbar)"
+msgstr "Nutze Inputstream zum Abspielen (falls verfügbar)"
 
 msgctxt "#32012"
 msgid "Verify SSL certs"

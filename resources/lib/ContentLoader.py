@@ -12,7 +12,6 @@ import xml.etree.ElementTree as ET
 from datetime import date
 import xbmcgui
 import xbmcplugin
-from bs4 import BeautifulSoup
 
 
 class ContentLoader(object):
@@ -195,29 +194,28 @@ class ContentLoader(object):
         """
         self.utils.log('(' + sport + ') Main Menu')
         _session = self.session.get_session()
-        base_url = self.constants.get_base_url()
+        epg_url = self.constants.get_epg_url()
         sports = self.constants.get_sports_list()
 
         # load sport page from telekom
-        url = base_url + '/' + sports.get(sport, {}).get('page')
-        html = _session.get(url, verify=self.verify_ssl).text
+        url = epg_url + sports.get(sport, {}).get('target')
+        raw_data = _session.get(url, verify=self.verify_ssl).text
 
-        # parse sport page data
-        events = []
-        check_soup = BeautifulSoup(html, 'html.parser')
-        content_groups = check_soup.find_all('div', class_='content-group')
-        for content_group in content_groups:
-            headline = content_group.find('h2')
-            event_lane = content_group.find('event-lane')
-            if headline:
-                if event_lane is not None:
-                    events.append((headline.get_text().encode(
-                        'utf-8'), event_lane.attrs.get('prop-url')))
+        # parse data
+        data = json.loads(raw_data)
+        data = data.get('data', {}).get('content', [])
+
+        lanes = []
+        if len(data) > 0:
+            for lane in data:
+                if len(lane.get('group_elements', [])) > 0 and lane.get('group_elements')[0].get('type').lower().find('lane') > -1:
+                    lanes.append(lane)
 
         # add directory item for each event
-        for event in events:
-            url = self.utils.build_url({'for': sport, 'lane': event[1]})
-            list_item = xbmcgui.ListItem(label=self.utils.capitalize(event[0]))
+        for lane in lanes:
+            url = self.utils.build_url({'for': sport, 'lane': lane.get('group_elements')[0].get('data_url')})
+            title = lane.get('title') if lane.get('title') and lane.get('title') != '' else lane.get('group_elements')[0].get('title')
+            list_item = xbmcgui.ListItem(label=title)
             list_item = self.item_helper.set_art(
                 list_item=list_item,
                 sport=sport)
@@ -229,9 +227,9 @@ class ContentLoader(object):
 
         # Add static folder items (if available)
         # self.__add_static_folders()
-        xbmcplugin.addSortMethod(
-            handle=self.plugin_handle,
-            sortMethod=xbmcplugin.SORT_METHOD_LABEL)
+        # xbmcplugin.addSortMethod(
+        #    handle=self.plugin_handle,
+        #    sortMethod=xbmcplugin.SORT_METHOD_LABEL)
         xbmcplugin.endOfDirectory(self.plugin_handle)
 
     def show_date_list(self, _for):
@@ -295,20 +293,21 @@ class ContentLoader(object):
         data = data.get('data', [])
 
         # generate entries
-        for item in data.get('data'):
-            info = {}
-            url = self.utils.build_url(
-                {'for': sport, 'lane': lane, 'target': item.get('target')})
-            list_item = xbmcgui.ListItem(
-                label=self.item_helper.build_title(item))
-            list_item = self.item_helper.set_art(list_item, sport, item)
-            info['plot'] = self.item_helper.build_description(item)
-            list_item.setInfo('video', info)
-            xbmcplugin.addDirectoryItem(
-                handle=plugin_handle,
-                url=url,
-                listitem=list_item,
-                isFolder=True)
+        if data and data.get('data'):
+            for item in data.get('data'):
+                info = {}
+                url = self.utils.build_url(
+                    {'for': sport, 'lane': lane, 'target': item.get('target')})
+                list_item = xbmcgui.ListItem(
+                    label=self.item_helper.build_title(item))
+                list_item = self.item_helper.set_art(list_item, sport, item)
+                info['plot'] = self.item_helper.build_description(item)
+                list_item.setInfo('video', info)
+                xbmcplugin.addDirectoryItem(
+                    handle=plugin_handle,
+                    url=url,
+                    listitem=list_item,
+                    isFolder=True)
         xbmcplugin.endOfDirectory(plugin_handle)
 
     def show_matches_list(self, game_date, _for):
@@ -410,21 +409,24 @@ class ContentLoader(object):
             play_item = xbmcgui.ListItem(
                 path=self.get_m3u_url(streams.get(stream)))
             if use_inputstream is True:
-                # pylint: disable=E1101
-                play_item.setContentLookup(False)
-                play_item.setMimeType('application/vnd.apple.mpegurl')
-                play_item.setProperty(
-                    'inputstream.adaptive.stream_headers',
-                    'user-agent=' + self.utils.get_user_agent())
-                play_item.setProperty(
-                    'inputstream.adaptive.manifest_type', 'hls')
-                play_item.setProperty('inputstreamaddon',
-                                      'inputstream.adaptive')
+                import inputstreamhelper
+                is_helper = inputstreamhelper.Helper('hls')
+                if is_helper.check_inputstream():
+                    # pylint: disable=E1101
+                    play_item.setContentLookup(False)
+                    play_item.setMimeType('application/vnd.apple.mpegurl')
+                    play_item.setProperty('inputstream.adaptive.stream_headers',
+                        'user-agent=' + self.utils.get_user_agent())
+                    play_item.setProperty('inputstream.adaptive.manifest_type', 'hls')
+                    play_item.setProperty('inputstreamaddon', 'inputstream.adaptive')
             return xbmcplugin.setResolvedUrl(
                 self.plugin_handle,
                 True,
                 play_item)
-        return False
+        return xbmcplugin.setResolvedUrl(
+                self.plugin_handle,
+                False,
+                xbmcgui.ListItem(path=''))
 
     def __parse_regular_event(self, target_url, details, match_time):
         """

@@ -55,7 +55,7 @@ class Utils(object):
         :type level: int
         """
         addon_data = self.get_addon_data()
-        xbmc.log('[' + addon_data.get('plugin') + '] ' + str(msg), level)
+        xbmc.log('[%s] %s' % (addon_data.get('plugin'), msg), level)
 
     def get_local_string(self, string_id):
         """

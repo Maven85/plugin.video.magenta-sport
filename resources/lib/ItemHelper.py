@@ -34,14 +34,31 @@ class ItemHelper(object):
         """
         desc = ''
         if item.get('metadata', {}).get('description_bold'):
-            desc += item.get('metadata', {}).get('description_bold') + ' '
+            desc = '%s ' % item.get('metadata', {}).get('description_bold')
         if item.get('metadata', {}).get('description_regular'):
             if desc != '':
-                desc += '- '
-            desc += item.get('metadata', {}).get('description_regular') + ''
+                desc = '%s- ' % desc
+            desc = '%s%s' % (desc, item.get('metadata', {}).get('description_regular'))
         if desc != '':
-            desc += ':\n'
-        desc += self.build_title(item) + ' '
+            desc = '%s:\n' % desc
+        desc = '%s%s ' % (desc, self.build_title(item))
+        if item.get('metadata', {}).get('scheduled_start', {}).get('utc_timestamp') and item.get('metadata', {}).get('scheduled_end', {}).get('utc_timestamp'):
+            now = datetime.now()
+            sdt = datetime.fromtimestamp(float(item.get('metadata', {}).get('scheduled_start', {}).get('utc_timestamp')))
+            edt = datetime.fromtimestamp(float(item.get('metadata', {}).get('scheduled_end', {}).get('utc_timestamp')))
+            match_date, match_time = self.datetime_from_utc(item.get('metadata'), item)
+            if now > sdt and now < edt:
+                desc = '%s\n\nSeit %s Uhr' % (desc, match_time)
+            elif now < sdt:
+                delta = (sdt.date() - now.date()).days
+                if delta == 0:
+                    match_date = 'Heute'
+                elif delta == 1:
+                    match_date = 'Morgen'
+                elif delta == 2:
+                    match_date = 'Übermorgen'.decode("UTF-8")
+                desc = '%s\n\n%s %s Uhr' % (desc, match_date, match_time)
+
         return desc
 
     def set_art(self, list_item, sport, item=None):
@@ -115,9 +132,9 @@ class ItemHelper(object):
             details = metadata.get('details')
             home = details.get('home', {})
             name_full = home.get('name_full')
-            if name_full is not None:
+            if name_full and name_full != '':
                 title += self.__build_match_title_full(details=details)
-            elif name_full is None and home.get('name_short') is not None:
+            elif title == '' and home.get('name_short') and home.get('name_short') != '':
                 title += self.__build_match_title_short(details=details)
         return self.__build_fallback_title(title=title, metadata=metadata)
 
@@ -135,10 +152,11 @@ class ItemHelper(object):
         """
         image = ''
         if images.get('fallback'):
-            image = base_url + '/' + images.get('fallback')
+            image = images.get('fallback')
         if images.get('editorial'):
-            image = base_url + '/' + images.get('editorial')
+            image = images.get('editorial')
         if image != '':
+            image = base_url + image.replace(' ', '%20')
             try:
                 list_item.setArt({
                     'poster': image,
@@ -257,7 +275,10 @@ class ItemHelper(object):
             date_container = element.get('scheduled_start', {})
         if date_container is None:
             return (None, None)
-        timestamp = float(date_container.get('date'))
+        stimestamp = date_container.get('date')
+        if stimestamp is None:
+            stimestamp = date_container.get('utc_timestamp')
+        timestamp = float(stimestamp)
         match_datetime = datetime.fromtimestamp(timestamp)
         match_date = match_datetime.strftime('%d.%m.%Y')
         match_time = match_datetime.strftime('%H:%M')

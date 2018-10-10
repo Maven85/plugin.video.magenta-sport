@@ -17,7 +17,6 @@ from resources.lib.Session import Session
 from resources.lib.Settings import Settings
 from resources.lib.Utils import Utils
 
-
 # setup plugin base stuff
 try:
     PLUGIN_HANDLE = int(argv[1])
