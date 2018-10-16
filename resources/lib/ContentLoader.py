@@ -89,7 +89,7 @@ class ContentLoader(object):
             metadata = element.get('metadata', {})
             details = metadata.get('details', {})
             # get matchtime
-            match_date, match_time = self.item_helper.datetime_from_utc(
+            match_date, match_time, match_weekday = self.item_helper.datetime_from_utc(
                 metadata=metadata,
                 element=element)
             # check if we have already matches scheduled for that date

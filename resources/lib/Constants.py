@@ -19,6 +19,7 @@ STREAM_ROUTE = '/service/player/streamAccess'
 STREAM_PARAMS = 'videoId=%VIDEO_ID%&label=2780_hls'
 STREAM_DEFINITON_URL = BASE_URL + STREAM_ROUTE + '?' + STREAM_PARAMS
 FANART_URL = PRL + 'raw.githubusercontent.com/hubsif/kodi-telekomsport/master'
+DAY_NAMES = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Sonntag']
 
 # core event types
 SPORTS = {
@@ -262,3 +263,12 @@ class Constants(object):
         :returns:  string -- Addon ID
         """
         return ADDON_ID
+
+    @classmethod
+    def get_day_names(cls):
+        """
+        Returns the list of german day names
+
+        :returns:  dict -- List of german day names
+        """
+        return DAY_NAMES

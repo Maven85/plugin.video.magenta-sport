@@ -46,7 +46,7 @@ class ItemHelper(object):
             now = datetime.now()
             sdt = datetime.fromtimestamp(float(item.get('metadata', {}).get('scheduled_start', {}).get('utc_timestamp')))
             edt = datetime.fromtimestamp(float(item.get('metadata', {}).get('scheduled_end', {}).get('utc_timestamp')))
-            match_date, match_time = self.datetime_from_utc(item.get('metadata'), item)
+            match_date, match_time, match_weekday = self.datetime_from_utc(item.get('metadata'), item)
             if now > sdt and now < edt:
                 desc = '%s\n\nSeit %s Uhr' % (desc, match_time)
             elif now < sdt:
@@ -57,6 +57,8 @@ class ItemHelper(object):
                     match_date = 'Morgen'
                 elif delta == 2:
                     match_date = 'Übermorgen'.decode("UTF-8")
+                else:
+                    match_date = sdt.strftime('{0}, {1}').format(match_weekday, match_date)
                 desc = '%s\n\n%s %s Uhr' % (desc, match_date, match_time)
 
         return desc
@@ -257,8 +259,7 @@ class ItemHelper(object):
         title += ' (' + match_time + ' Uhr)'
         return title
 
-    @classmethod
-    def datetime_from_utc(cls, metadata, element=None):
+    def datetime_from_utc(self, metadata, element=None):
         """
         Generates a homan readable time from an items UTC timestamp
 
@@ -282,4 +283,5 @@ class ItemHelper(object):
         match_datetime = datetime.fromtimestamp(timestamp)
         match_date = match_datetime.strftime('%d.%m.%Y')
         match_time = match_datetime.strftime('%H:%M')
-        return (match_date, match_time)
+        match_weekday = self.constants.get_day_names()[match_datetime.weekday()]
+        return (match_date, match_time, match_weekday)
