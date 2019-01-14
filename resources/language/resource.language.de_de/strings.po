@@ -1,11 +1,11 @@
 # Kodi Media Center language file
 # Addon Name: Telekom Sport
-# Addon id: plugin.video.telekom-sport
+# Addon id: plugin.video.magenta-sport
 # Addon Provider: asciidisco
 msgid ""
 msgstr ""
-"Project-Id-Version: plugin.video.telekom-sport\n"
-"Report-Msgid-Bugs-To: https://github.com/asciidisco/plugin.video.telekom-sport\n"
+"Project-Id-Version: plugin.video.magenta-sport\n"
+"Report-Msgid-Bugs-To: https://github.com/asciidisco/plugin.video.magenta-sport\n"
 "POT-Creation-Date: 2017-07-24 16:15+0000\n"
 "PO-Revision-Date: 2017-07-24 16:15+0000\n"
 "Last-Translator: Sebastian Golasch <public@asciidisco.com>\n"

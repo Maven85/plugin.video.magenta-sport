@@ -7,7 +7,7 @@
 """Static links & list of sports"""
 
 # KODI addon id
-ADDON_ID = 'plugin.video.telekom-sport'
+ADDON_ID = 'plugin.video.magenta-sport'
 
 # urls for login & data retrival
 PRL = 'https://'
