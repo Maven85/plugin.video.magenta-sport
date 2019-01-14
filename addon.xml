@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<addon id="plugin.video.telekom-sport" version="1.2.7" name="Telekom Sport" provider-name="asciidisco">
+<addon id="plugin.video.magenta-sport" version="1.2.7" name="Magenta Sport" provider-name="asciidisco">
     <requires>
         <import addon="xbmc.python" version="2.24.0"/>
         <import addon="script.module.pydes" version="2.0.1"/>
@@ -18,25 +18,18 @@
             <screenshot>resources\screen_2.png</screenshot>
             <screenshot>resources\screen_3.png</screenshot>
         </assets>
-        <summary lang="de_DE">Telekom Sport</summary>
-        <description lang="de_DE">Telekom Sport ist ein Portal für Live Eishockey, Basketball, 3. Lig, Sky Handball, Sky Bundeliga/Champions-League Konferenzen &amp; Frauenfußball Bundesliga Übertragungen.</description>
+        <summary lang="de_DE">Magenta Sport</summary>
+        <description lang="de_DE">Magenta Sport ist ein Portal für Live Eishockey, Basketball, 3. Lig, Sky Handball, Sky Bundeliga/Champions-League Konferenzen &amp; Frauenfußball Bundesliga Übertragungen.</description>
         <disclaimer lang="de_DE">Inoffizielles Addon - Benutzung auf eigene Gefahr. Das Plugin wurde nicht von der Deutschen Telekom beauftragt &amp; bereitgestellt.</disclaimer>
-        <summary lang="en_GB">Telekom Sport</summary>
-        <description lang="en_GB">Telekom Sport is a portal for live Icehockey, Basketball, German 3rd Ligue, Sky Handball, Sky Bundeliga/Champions-League conferences &amp; womans football matches.</description>
+        <summary lang="en_GB">Magenta Sport</summary>
+        <description lang="en_GB">Magenta Sport is a portal for live Icehockey, Basketball, German 3rd Ligue, Sky Handball, Sky Bundeliga/Champions-League conferences &amp; womans football matches.</description>
         <disclaimer lang="en_GB">Unofficial Addon - Use at your own risk. The plugin is not commisioned by Deutsche Telekom.</disclaimer>
         <language>en de</language>
         <platform>all</platform>
         <license>MIT</license>
-        <website>https://www.telekomsport.de/</website>
+        <website>https://www.magentasport.de/</website>
         <email>public at asciidisco dot com</email>
         <source>https://github.com/asciidisco/plugin.video.telekom-sport</source>
         <forum>https://www.kodinerds.net/index.php/Thread/57586-PreRelease-Telekom-Sport/</forum>
-        <news>v1.2.7 (2017-10-09):
-- asciidisco/plugin.video.telekomsport.
-- Fixes issue with old doc versions being uploaded.
-- Fixing build script.
-- Fixes problems with parsing cookie files.
-- Adds ability to enable processing of invalid SSL certs.
-- Version bump</news>
     </extension>
 </addon>

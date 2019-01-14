@@ -11,7 +11,7 @@ ADDON_ID = 'plugin.video.telekom-sport'
 
 # urls for login & data retrival
 PRL = 'https://'
-BASE_URL = PRL + 'www.telekomsport.de'
+BASE_URL = PRL + 'www.magentasport.de'
 LOGIN_LINK = BASE_URL + '/service/auth/web/login?headto=' + BASE_URL
 LOGIN_ENDPOINT = PRL + 'accounts.login.idm.telekom.com/sso'
 EPG_URL = BASE_URL + '/api/v2/'
