@@ -13,7 +13,7 @@ ADDON_ID = 'plugin.video.magenta-sport'
 PRL = 'https://'
 BASE_URL = PRL + 'www.magentasport.de'
 LOGIN_LINK = BASE_URL + '/service/auth/web/login?headto=' + BASE_URL
-LOGIN_ENDPOINT = PRL + 'accounts.login.idm.telekom.com/sso'
+LOGIN_ENDPOINT = PRL + 'accounts.login.idm.telekom.com/factorx'
 EPG_URL = BASE_URL + '/api/v2/'
 STREAM_ROUTE = '/service/player/streamAccess'
 STREAM_PARAMS = 'videoId=%VIDEO_ID%&label=2780_hls'

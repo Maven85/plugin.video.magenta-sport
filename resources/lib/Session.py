@@ -13,6 +13,8 @@ except ImportError:
 from os import path, remove
 from requests import session, utils
 from bs4 import BeautifulSoup
+import xbmcvfs
+import time
 
 
 class Session(object):
@@ -50,6 +52,7 @@ class Session(object):
         """Clears the session, e.g. removes Cookie file"""
         if path.isfile(self.session_file):
             remove(self.session_file)
+            self.get_session().cookies.clear_session_cookies()
 
     def save_session(self):
         """Persists the session, e.g. generates Cookie file"""
@@ -90,22 +93,21 @@ class Session(object):
         :type password: string
         :returns:  bool -- Login succeeded
         """
-        payload = {}
         # check if the suer is already logged in
-        check_res = self.get_session().get(self.constants.get_base_url())
-        check_soup = BeautifulSoup(check_res.text, 'html.parser')
-        if check_soup.find('a', class_='logout') is not None:
-            return True
-        # clear session
-        self.clear_session()
-        self._session = self.load_session()
-        _session = self.get_session()
+        if path.isfile(self.session_file):
+            file_time = xbmcvfs.Stat(self.session_file).st_mtime()
+            if (time.time() - file_time) / 3600 < 24 and self.get_session().cookies.get('displayname'):
+                return True
+            else:
+                self.clear_session()
+
+        payload = {}
         # get contents of login page
-        res = _session.get(
+        res = self.get_session().get(
             self.constants.get_login_link(),
             verify=self.verify_ssl)
-        login_page_html = res.text
-        soup = BeautifulSoup(login_page_html, 'html.parser')
+
+        soup = BeautifulSoup(res.text, 'html.parser')
         # find all <input/> items in the login form & grep their data
         for item in soup.find(id='login').find_all('input'):
             if item.attrs.get('name') is not None:
@@ -119,13 +121,14 @@ class Session(object):
         payload['pw_submit'] = ''
         # do the login & read the incoming html <title/>
         # attribute to determine of the login was successfull
-        login_res = _session.post(
+        login_res = self.get_session().post(
             self.constants.get_login_endpoint(),
             verify=self.verify_ssl,
             data=payload)
+        
         soup = BeautifulSoup(login_res.text, 'html.parser')
-        success = 'Sport' in soup.find('title').get_text()
-        if success is True:
+        success = not soup.find('input', {'id': 'pw_usr'})
+        if success:
             self.save_session()
             return True
         return False
