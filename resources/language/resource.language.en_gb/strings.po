@@ -1,14 +1,13 @@
 # Kodi Media Center language file
-# Addon Name: Telekom Sport
+# Addon Name: Magenta Sport
 # Addon id: plugin.video.magenta-sport
-# Addon Provider: asciidisco
+# Addon Provider: Maven
 msgid ""
 msgstr ""
 "Project-Id-Version: plugin.video.magenta-sport\n"
-"Report-Msgid-Bugs-To: https://github.com/asciidisco/plugin.video.magenta-sport\n"
+"Report-Msgid-Bugs-To: https://github.com/kodinerds/repo/plugin.video.magenta-sport\n"
 "POT-Creation-Date: 2017-07-24 16:15+0000\n"
 "PO-Revision-Date: 2017-07-24 16:15+0000\n"
-"Last-Translator: Sebastian Golasch <public@asciidisco.com>\n"
 "Language-Team: English\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -17,11 +16,11 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
 
 msgctxt "Addon Summary"
-msgid "Telekom Sport"
+msgid "Magenta Sport"
 msgstr ""
 
 msgctxt "Addon Description"
-msgid "Telekom Sport is a portal for live Icehockey, Basketball, German 3rd Ligue, Sky Handball, Sky Bundeliga/Champions-League conferences & womans football matches."
+msgid "Magenta Sport is a portal for Icehockey, Basketball, German 3rd Ligue, Sky Handball, Sky Bundeliga/Champions-League conferences, womans football matches, FC Bayern.tv live."
 msgstr ""
 
 msgctxt "Addon Disclaimer"
@@ -74,4 +73,16 @@ msgstr ""
 
 msgctxt "#32012"
 msgid "Verify SSL certs"
+msgstr ""
+
+msgctxt "#32013"
+msgid "Logout successful"
+msgstr ""
+
+msgctxt "#32014"
+msgid "Login"
+msgstr ""
+
+msgctxt "#32015"
+msgid "Login successful"
 msgstr ""

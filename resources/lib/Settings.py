@@ -6,10 +6,13 @@
 
 """Settings interface for Kodi, includes en-/decryption of credentials"""
 
+from __future__ import unicode_literals
+from kodi_six.utils import py2_encode
 import base64
 import uuid
 import time
 import xbmc
+
 try:
     import pyDes
 except ImportError:
@@ -20,6 +23,7 @@ else:
 
 class Settings(object):
     """Settings interface for Kodi, includes en-/decryption of credentials"""
+
 
     def __init__(self, utils, dialogs, constants):
         """
@@ -38,6 +42,7 @@ class Settings(object):
         self.use_encryption = USE_PYDES
         self.addon_id = self.constants.get_addon_id()
 
+
     def uniq_id(self, delay=1):
         """
         Returns a unique id based on the devices MAC address
@@ -47,13 +52,14 @@ class Settings(object):
         :returns:  string -- Unique secret
         """
         mac_addr = self.__get_mac_address(delay=delay)
-        if ':' in mac_addr and delay == 2:
+        if py2_encode(':') in mac_addr and delay == 2:
             return uuid.uuid5(uuid.NAMESPACE_DNS, str(mac_addr)).bytes
         else:
-            error_msg = '[%s] error: failed to get device id (%s)'
-            self.utils.log(error_msg % (self.addon_id, str(mac_addr)))
+            error_msg = '[{0}] error: failed to get device id ({1})'
+            self.utils.log(error_msg.format(self.addon_id, str(mac_addr)))
             self.dialogs.show_storing_credentials_failed()
             return 'UnsafeStaticSecret'
+
 
     def encode(self, data):
         """
@@ -66,11 +72,12 @@ class Settings(object):
         key_handle = pyDes.triple_des(
             self.uniq_id(delay=2),
             pyDes.CBC,
-            "\0\0\0\0\0\0\0\0",
+            py2_encode("\0\0\0\0\0\0\0\0"),
             padmode=pyDes.PAD_PKCS5)
         encrypted = key_handle.encrypt(
             data=data)
         return base64.b64encode(s=encrypted)
+
 
     def decode(self, data):
         """
@@ -80,14 +87,18 @@ class Settings(object):
         :type data: str
         :returns:  string -- Decoded data
         """
+        if data == '':
+            return data
+
         key_handle = pyDes.triple_des(
             self.uniq_id(delay=2),
             pyDes.CBC,
-            "\0\0\0\0\0\0\0\0",
+            py2_encode("\0\0\0\0\0\0\0\0"),
             padmode=pyDes.PAD_PKCS5)
         decrypted = key_handle.decrypt(
             data=base64.b64decode(s=data))
-        return decrypted
+        return decrypted.decode('utf-8')
+
 
     def has_credentials(self):
         """
@@ -100,6 +111,7 @@ class Settings(object):
         password = addon.getSetting('password')
         return user != '' or password != ''
 
+
     def set_credentials(self):
         """
         Opens up the email & password dialogs and stores entered credentials
@@ -110,15 +122,16 @@ class Settings(object):
         user = self.dialogs.show_email_dialog()
         password = self.dialogs.show_password_dialog()
         do_encrypt = addon.getSetting('encrypt_credentials')
-        if do_encrypt == 'True' and self.use_encryption is True:
-            _mail = self.encode(user)
-            _password = self.encode(password)
+        if do_encrypt == 'true' and self.use_encryption is True:
+            _mail = self.encode(user) if user != '' else user
+            _password = self.encode(password) if password != '' else password
         else:
             _mail = user
             _password = password
         addon.setSetting('email', _mail)
         addon.setSetting('password', _password)
         return (user, password)
+
 
     def get_credentials(self):
         """
@@ -133,6 +146,18 @@ class Settings(object):
             return (user, password)
         return (self.decode(user), self.decode(password))
 
+
+    def clear_credentials(self):
+        """
+        Clears credentials
+        """
+        user, password = '', ''
+        addon = self.utils.get_addon()
+        addon.setSetting('email', user)
+        addon.setSetting('password', password)
+        return (user, password)
+
+
     @classmethod
     def __get_mac_address(cls, delay=1):
         """
@@ -145,7 +170,7 @@ class Settings(object):
         mac_addr = xbmc.getInfoLabel('Network.MacAddress')
         # hack response busy
         i = 0
-        while ':' not in mac_addr and i < 3:
+        while py2_encode(':') not in mac_addr and i < 3:
             i += 1
             time.sleep(delay)
             mac_addr = xbmc.getInfoLabel('Network.MacAddress')

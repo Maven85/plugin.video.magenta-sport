@@ -4,10 +4,11 @@
 # Created on: 24.07.2017
 # License: MIT https://goo.gl/WA1kby
 
-"""Kodi plugin for Telekom Sport (https://telekomsport.de)"""
+"""Kodi plugin for Magenta Sport (https://magentasport.de)"""
 
+from __future__ import unicode_literals
 from sys import argv
-from urlparse import parse_qsl
+import ast
 from resources.lib.Cache import Cache
 from resources.lib.Constants import Constants
 from resources.lib.ContentLoader import ContentLoader
@@ -25,6 +26,11 @@ except ValueError:
     PLUGIN_HANDLE = 1
     KODI_BASE_URL = ''
 
+try:
+    from urllib.parse import parse_qsl
+except:
+    from urlparse import parse_qsl
+
 # init plugin object structure
 CONSTANTS = Constants()
 CACHE = Cache()
@@ -40,7 +46,7 @@ CONTENT_LOADER = ContentLoader(
     handle=PLUGIN_HANDLE)
 
 
-def router(paramstring, user, password):
+def router(paramstring):
     """
     Converts paramstrings into dicts & decides which
     method should be called in order to display contents
@@ -52,11 +58,22 @@ def router(paramstring, user, password):
     :returns:  bool -- Matching route found
     """
     params = dict(parse_qsl(paramstring))
+    if params.get('for') is not None: params['for'] = ast.literal_eval(params.get('for'))
     keys = params.keys()
     # settings action routes
-    processed = __settings_action(params=params)
+    user, password, processed = __settings_action(params=params)
+    if processed is True:
+        if user == '' and password == '':
+            return False
+    else:
+        # show user settings dialog if settings are not complete
+        # store the credentials if user added them
+        if SETTINGS.has_credentials():
+            user, password = SETTINGS.get_credentials()
+        else:
+            user, password = SETTINGS.set_credentials()
     # check login
-    if __login_failed_action(user=user, password=password) is False:
+    if __login_failed_action(user=user, password=password, processed=processed) is False:
         return False
     # plugin list & video routes
     # play a video
@@ -79,26 +96,31 @@ def __settings_action(params):
     Operates on actions from within the settings pane
     Can logout the user, can switch users account
 
+    :param user: Magenta Sport account email address or user id
+    :type user: string
+    :param password: Magenta Sport account password
+    :type password: string
     :param params: Route paramters
     :type params: dict
     :returns:  bool -- Route matched
     """
     if params.get('action') is not None:
         if params.get('action') == 'logout':
-            SESSION.logout()
+            user, password = SESSION.logout()
+            DIALOGS.show_logout_successful_notification()
         else:
-            SESSION.switch_account()
-        return True
-    return False
+            user, password = SESSION.switch_account()
+        return (user, password, True)
+    return (None, None, False)
 
 
-def __login_failed_action(user, password):
+def __login_failed_action(user, password, processed):
     """
     Veryfies the users login & shows a notification if it failes
 
-    :param user: Telekom account email address or user id
+    :param user: Magenta Sport account email address or user id
     :type user: string
-    :param password: Telekom account password
+    :param password: Magenta Sport account password
     :type password: string
     :returns:  bool -- Login succeeded
     """
@@ -106,6 +128,8 @@ def __login_failed_action(user, password):
         # show login failed dialog if login didn't succeed
         DIALOGS.show_login_failed_notification()
         return False
+    if processed is True:
+        DIALOGS.show_login_successful_notification()
     return True
 
 
@@ -135,7 +159,7 @@ def __match_details_action(params, processed):
     :type processed: bool
     :returns:  bool -- Route matched
     """
-    if params.get('target') is not None and processed is False:
+    if params.get('for') is not None and params.get('target') is not None and processed is False:
         CONTENT_LOADER.show_match_details(
             params.get('target'),
             params.get('lane'),
@@ -154,7 +178,7 @@ def __matches_list_action(params, processed):
     :type processed: bool
     :returns:  bool -- Route matched
     """
-    if params.get('date') is not None and processed is False:
+    if params.get('for') is not None and params.get('date') is not None and processed is False:
         CONTENT_LOADER.show_matches_list(
             params.get('date'),
             params.get('for'))
@@ -172,7 +196,7 @@ def __event_lane_action(params, processed):
     :type processed: bool
     :returns:  bool -- Route matched
     """
-    if params.get('lane') is not None and processed is False:
+    if params.get('for') is not None and params.get('lane') is not None and processed is False:
         CONTENT_LOADER.show_event_lane(
             sport=params.get('for'),
             lane=params.get('lane'))
@@ -190,10 +214,9 @@ def __categories_action(params, processed):
     :type processed: bool
     :returns:  bool -- Route matched
     """
-    _for = params.get('for')
-    if _for is not None and processed is False:
+    if params.get('for') is not None and processed is False:
         CONTENT_LOADER.show_sport_categories(
-            sport=_for)
+            sport=params.get('for'))
         return True
     return False
 
@@ -219,15 +242,9 @@ if __name__ == '__main__':
     # Load addon data & start plugin
     ADDON = UTILS.get_addon()
     ADDON_DATA = UTILS.get_addon_data()
-    UTILS.log('Started (Version ' + ADDON_DATA.get('version') + ')')
-    # show user settings dialog if settings are not complete
-    # store the credentials if user added them
-    if SETTINGS.has_credentials():
-        USER, PASSWORD = SETTINGS.get_credentials()
-    else:
-        USER, PASSWORD = SETTINGS.set_credentials()
+    UTILS.log('Started (Version {0})'.format(ADDON_DATA.get('version')))
     # Call the router function and pass
     # the plugin call parameters to it.
     # We use string slicing to trim the
     # leading '?' from the plugin call paramstring
-    router(argv[2][1:], user=USER, password=PASSWORD)
+    router(argv[2][1:])

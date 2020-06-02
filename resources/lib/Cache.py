@@ -5,31 +5,35 @@
 # License: MIT https://goo.gl/WA1kby
 
 """Caching facade for KODIs window API"""
+from __future__ import unicode_literals
+import xbmcgui, xbmc
 
 try:
     import cPickle as pickle
 except ImportError:
     import pickle
-import xbmcgui
 
 
 class Cache(object):
     """Caching facade for KODIs window API"""
 
+
     def __init__(self):
         """Setup in memory cache & stores window instance in memory"""
         self.setup_memcache()
+
 
     def setup_memcache(self):
         """Setup in memory cache"""
         window = self.__get_window_instance()
         try:
             cached_items = pickle.loads(window.getProperty('memcache'))
-        except EOFError:
+        except (EOFError, TypeError):
             cached_items = {}
         if len(cached_items) < 1:
-            window.setProperty('memcache', pickle.dumps({}))
+            window.setProperty('memcache', pickle.dumps(cached_items, 0))
         return cached_items
+
 
     def has_cached_item(self, cache_id):
         """
@@ -42,6 +46,7 @@ class Cache(object):
         window = self.__get_window_instance()
         cached_items = pickle.loads(window.getProperty('memcache'))
         return cache_id in cached_items.keys()
+
 
     def get_cached_item(self, cache_id):
         """
@@ -57,6 +62,7 @@ class Cache(object):
             return None
         return cached_items[cache_id]
 
+
     def add_cached_item(self, cache_id, contents):
         """
         Adds an item to the cache
@@ -69,7 +75,8 @@ class Cache(object):
         window = self.__get_window_instance()
         cached_items = pickle.loads(window.getProperty('memcache'))
         cached_items.update({cache_id: contents})
-        window.setProperty('memcache', pickle.dumps(cached_items))
+        window.setProperty('memcache', pickle.dumps(cached_items, 0))
+
 
     @classmethod
     def __get_window_instance(cls):

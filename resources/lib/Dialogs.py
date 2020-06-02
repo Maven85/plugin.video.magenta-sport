@@ -4,14 +4,15 @@
 # Created on: 24.07.2017
 # License: MIT https://goo.gl/WA1kby
 
-
 """Displays localized dialogs for Kodi"""
 
+from __future__ import unicode_literals
 import xbmcgui
 
 
 class Dialogs(object):
     """Displays localized dialogs for Kodi"""
+
 
     def __init__(self, utils):
         """Injects the utils instance
@@ -20,6 +21,7 @@ class Dialogs(object):
         :type utils: resources.lib.Utils
         """
         self.utils = utils
+
 
     def show_password_dialog(self):
         """
@@ -33,6 +35,7 @@ class Dialogs(object):
             type=xbmcgui.INPUT_ALPHANUM,
             option=xbmcgui.ALPHANUM_HIDE_INPUT)
 
+
     def show_email_dialog(self):
         """
         Shows email input
@@ -43,6 +46,7 @@ class Dialogs(object):
         return dlg.input(
             self.utils.get_local_string(string_id=32005),
             type=xbmcgui.INPUT_ALPHANUM)
+
 
     def show_not_available_dialog(self):
         """
@@ -56,6 +60,7 @@ class Dialogs(object):
             addon_data.get('plugin'),
             self.utils.get_local_string(string_id=32009))
 
+
     def show_login_failed_notification(self):
         """
         Shows login failed notification for 5 sec
@@ -68,6 +73,7 @@ class Dialogs(object):
             self.utils.get_local_string(string_id=32007),
             xbmcgui.NOTIFICATION_ERROR, 5000)
 
+
     def show_storing_credentials_failed(self):
         """
         Shows "storing credentials failed" modal
@@ -78,3 +84,29 @@ class Dialogs(object):
         dialog.ok(
             self.utils.get_addon_data().get('plugin'),
             self.utils.get_local_string(32008))
+
+
+    def show_logout_successful_notification(self):
+        """
+        Shows logout successful notification for 5 sec
+
+        :returns:  bool - Notification shown
+        """
+        dialog = xbmcgui.Dialog()
+        dialog.notification(
+            'Magenta Sport {0}'.format(self.utils.get_local_string(string_id=32002)),
+            self.utils.get_local_string(string_id=32013),
+            xbmcgui.NOTIFICATION_INFO, 5000)
+
+
+    def show_login_successful_notification(self):
+        """
+        Shows login successful notification for 5 sec
+
+        :returns:  bool - Notification shown
+        """
+        dialog = xbmcgui.Dialog()
+        dialog.notification(
+            'Magenta Sport {0}'.format(self.utils.get_local_string(string_id=32014)),
+            self.utils.get_local_string(string_id=32015),
+            xbmcgui.NOTIFICATION_INFO, 5000)
