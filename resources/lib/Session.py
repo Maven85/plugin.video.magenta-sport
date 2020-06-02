@@ -6,19 +6,22 @@
 
 """Stores, loads & builds up a request session object. Provides login"""
 
-try:
-    import cPickle as pickle
-except ImportError:
-    import pickle
+from __future__ import unicode_literals
 from os import path, remove
 from requests import session, utils
 from bs4 import BeautifulSoup
 import xbmcvfs
 import time
 
+try:
+    import cPickle as pickle
+except ImportError:
+    import pickle
+
 
 class Session(object):
     """Stores, loads & builds up a request session object. Provides login"""
+
 
     def __init__(self, constants, util, settings):
         """
@@ -39,6 +42,8 @@ class Session(object):
         self.session_file = self.utils.get_addon_data().get('cookie_path')
         self.verify_ssl = verify_ssl
         self._session = self.load_session()
+        self.load_session_cookies()
+
 
     def get_session(self):
         """
@@ -48,18 +53,21 @@ class Session(object):
         """
         return self._session
 
+
     def clear_session(self):
         """Clears the session, e.g. removes Cookie file"""
         if path.isfile(self.session_file):
             remove(self.session_file)
             self.get_session().cookies.clear_session_cookies()
 
+
     def save_session(self):
         """Persists the session, e.g. generates Cookie file"""
-        with open(self.session_file, 'w') as handle:
+        with open(self.session_file, 'wb') as handle:
             pickle.dump(
                 utils.dict_from_cookiejar(self._session.cookies),
                 handle)
+
 
     def load_session(self):
         """
@@ -73,16 +81,31 @@ class Session(object):
             'User-Agent': self.utils.get_user_agent(),
             'Accept-Encoding': 'gzip'
         })
-        if path.isfile(self.session_file):
-            with open(self.session_file, 'r') as handle:
-                try:
-                    _cookies = utils.cookiejar_from_dict(pickle.load(handle))
-                except EOFError:
-                    _cookies = utils.cookiejar_from_dict({})
-                _session.cookies = _cookies
+
         return _session
 
-    def login(self, user, password):
+
+    def load_session_cookies(self):
+        """
+        loads & deserializes Cookie file if exists
+        """
+        if path.isfile(self.session_file):
+            try:
+                with open(self.session_file, 'rb') as handle:
+                    _cookies = utils.cookiejar_from_dict(pickle.load(handle))
+            except EOFError:
+                _cookies = utils.cookiejar_from_dict({})
+            except (ValueError, pickle.UnpicklingError):
+                if self.settings.has_credentials():
+                    USER, PASSWORD = self.settings.get_credentials()
+                else:
+                    USER, PASSWORD = self.settings.set_credentials()
+                self.login(USER, PASSWORD, forceLogin=True)
+            if hasattr(self, '_cookies'):
+                self._session.cookies = _cookies
+
+
+    def login(self, user, password, forceLogin=False):
         """
         Logs in to the platform, fetches cookie headers and checks
         if the login succeeded
@@ -94,7 +117,7 @@ class Session(object):
         :returns:  bool -- Login succeeded
         """
         # check if the suer is already logged in
-        if path.isfile(self.session_file):
+        if forceLogin is False and path.isfile(self.session_file):
             file_time = xbmcvfs.Stat(self.session_file).st_mtime()
             if (time.time() - file_time) / 3600 < 24 and self.get_session().cookies.get('displayname'):
                 return True
@@ -125,7 +148,7 @@ class Session(object):
             self.constants.get_login_endpoint(),
             verify=self.verify_ssl,
             data=payload)
-        
+
         soup = BeautifulSoup(login_res.text, 'html.parser')
         success = not soup.find('input', {'id': 'pw_usr'})
         if success:
@@ -133,11 +156,14 @@ class Session(object):
             return True
         return False
 
+
     def logout(self):
         """Clears the session"""
         self.clear_session()
+        return self.settings.clear_credentials()
+
 
     def switch_account(self):
         """Clears the session & opens up credentials dialogs"""
         self.clear_session()
-        self.settings.set_credentials()
+        return self.settings.set_credentials()

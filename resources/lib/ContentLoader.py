@@ -4,8 +4,10 @@
 # Created on: 24.07.2017
 # License: MIT https://goo.gl/WA1kby
 
-"""Fetches and parses content from the Telekom Sport API & website"""
+"""Fetches and parses content from the Magenta Sport API & website"""
 
+from __future__ import unicode_literals
+from kodi_six.utils import py2_decode
 import re
 import json
 import xml.etree.ElementTree as ET
@@ -15,7 +17,8 @@ import xbmcplugin
 
 
 class ContentLoader(object):
-    """Fetches and parses content from the Telekom Sport API & website"""
+    """Fetches and parses content from the Magenta Sport API & website"""
+
 
     def __init__(self, cache, session, item_helper, handle):
         """
@@ -40,6 +43,7 @@ class ContentLoader(object):
         verify_ssl = True if addon.getSetting('verifyssl') == 'True' else False
         self.verify_ssl = verify_ssl
 
+
     def get_epg(self, sport):
         """
         Loads EPG either from cache or starts fetching it
@@ -50,10 +54,11 @@ class ContentLoader(object):
         """
         _session = self.session.get_session()
         # check for cached epg data
-        cached_epg = self.cache.get_cached_item('epg' + sport)
+        cached_epg = self.cache.get_cached_item('epg{0}'.format(sport))
         if cached_epg is not None:
             return cached_epg
         return self.load_epg(sport=sport, _session=_session)
+
 
     def load_epg(self, sport, _session):
         """
@@ -68,8 +73,9 @@ class ContentLoader(object):
         epg = self.fetch_epg(sport=sport, _session=_session)
         if epg.get('status') == 'success':
             page_tree = self.parse_epg(epg=epg)
-            self.cache.add_cached_item('epg' + sport, page_tree)
+            self.cache.add_cached_item('epg{0}'.format(sport), page_tree)
         return page_tree
+
 
     def parse_epg(self, epg):
         """
@@ -107,6 +113,7 @@ class ContentLoader(object):
 
             return page_tree
 
+
     def fetch_epg(self, sport, _session):
         """
         Builds the EPG URL & fetches the EPG
@@ -117,9 +124,9 @@ class ContentLoader(object):
         :type _session: requests.session
         :returns:  dict - Parsed EPG
         """
-        _epg_url = self.constants.get_epg_url()
-        _epg_url += self.constants.get_sports().get(sport, {}).get('epg', '')
-        return json.loads(_session.get(_epg_url).text, verify=self.verify_ssl)
+        _api_url = '{0}{1}'.format(self.constants.get_api_url(), self.constants.get_sports().get(sport, {}).get('epg', ''))
+        return json.loads(_session.get(_api_url, verify=self.verify_ssl).text)
+
 
     def get_stream_urls(self, video_id):
         """
@@ -138,11 +145,9 @@ class ContentLoader(object):
             verify=self.verify_ssl
             ).text)
         if stream_access.get('status') == 'success':
-            stream_urls['Live'] = 'https:' + \
-                stream_access.get('data', {}).get(
-                    'stream-access',
-                    [None, None])[1]
+            stream_urls['Live'] = 'https:{0}'.format(stream_access.get('data', {}).get('stream-access', [None, None])[1])
         return stream_urls
+
 
     def get_m3u_url(self, stream_url):
         """
@@ -158,19 +163,21 @@ class ContentLoader(object):
         xml_content = _session.get(stream_url, verify=self.verify_ssl)
         root = ET.fromstring(xml_content.text)
         for child in root:
-            m3u_url += child.attrib.get('url', '')
-            m3u_url += '?hdnea='
-            m3u_url += child.attrib.get('auth', '')
+            m3u_url = '{0}?hdnea={1}'.format(child.attrib.get('url', ''), child.attrib.get('auth', ''))
         return m3u_url
 
+
     def show_sport_selection(self):
-        """Creates the KODI list items for the static sport selection"""
+        """Creates the KODI list items for the sport selection"""
         self.utils.log('Sport selection')
-        sports = self.constants.get_sports_list()
+        _navigation_url = self.constants.get_navigation_url()
+        _session = self.session.get_session()
+        sports = json.loads(_session.get(_navigation_url, verify=self.verify_ssl).text).get('data').get('league_filter')
 
         for sport in sports:
             url = self.utils.build_url({'for': sport})
-            list_item = xbmcgui.ListItem(label=sports.get(sport).get('name'))
+            label = py2_decode(self.constants.get_sports_additional_infos().get(sport.get('id'), {}).get('prefix', '{0}')).format(sport.get('title'))
+            list_item = xbmcgui.ListItem(label=label)
             list_item = self.item_helper.set_art(
                 list_item=list_item,
                 sport=sport)
@@ -184,6 +191,7 @@ class ContentLoader(object):
                 sortMethod=xbmcplugin.SORT_METHOD_DATE)
         xbmcplugin.endOfDirectory(self.plugin_handle)
 
+
     def show_sport_categories(self, sport):
         """
         Creates the KODI list items for the contents of a sport selection.
@@ -192,13 +200,12 @@ class ContentLoader(object):
         :param sport: Chosen sport
         :type sport: string
         """
-        self.utils.log('(' + sport + ') Main Menu')
+        self.utils.log('({0}) Main Menu'.format(sport))
         _session = self.session.get_session()
-        epg_url = self.constants.get_epg_url()
-        sports = self.constants.get_sports_list()
+        api_url = self.constants.get_api_url()
 
-        # load sport page from telekom
-        url = epg_url + sports.get(sport, {}).get('target')
+        # load sport page from Magenta Sport
+        url = '{0}{1}'.format(api_url, sport.get('target'))
         raw_data = _session.get(url, verify=self.verify_ssl).text
 
         # parse data
@@ -232,6 +239,7 @@ class ContentLoader(object):
         #    sortMethod=xbmcplugin.SORT_METHOD_LABEL)
         xbmcplugin.endOfDirectory(self.plugin_handle)
 
+
     def show_date_list(self, _for):
         """
         Creates the KODI list items for a list of dates with contents
@@ -248,9 +256,7 @@ class ContentLoader(object):
             title = ''
             items = epg.get(_date)
             for item in items:
-                title = title + \
-                    str(' '.join(item.get('title').replace('Uhr', '').split(
-                        ' ')[:-2]).encode('utf-8')) + '\n\n'
+                title = '{0}{1}\n\n'.format(title, ' '.join(item.get('title').replace('Uhr', '').split(' ')[:-2]))
             url = self.utils.build_url({'date': date, 'for': _for})
             list_item = xbmcgui.ListItem(label=_date)
             list_item.setProperty('fanart_image', addon_data.get('fanart'))
@@ -269,6 +275,7 @@ class ContentLoader(object):
                 sortMethod=xbmcplugin.SORT_METHOD_DATE)
         xbmcplugin.endOfDirectory(plugin_handle)
 
+
     def show_event_lane(self, sport, lane):
         """
         Creates the KODI list items with the contents of an event-lanes
@@ -279,13 +286,13 @@ class ContentLoader(object):
         :param lane: Chosen event-lane
         :type lane: string
         """
-        self.utils.log('(' + sport + ') Lane ' + lane)
+        self.utils.log('({0}) Lane {1}'.format(sport, lane))
         _session = self.session.get_session()
-        epg_url = self.constants.get_epg_url()
+        api_url = self.constants.get_api_url()
         plugin_handle = self.plugin_handle
 
-        # load sport page from telekom
-        url = epg_url + '/' + lane
+        # load sport page from Magenta Sport
+        url = '{0}/{1}'.format(api_url, lane)
         raw_data = _session.get(url, verify=self.verify_ssl).text
 
         # parse data
@@ -310,6 +317,7 @@ class ContentLoader(object):
                     isFolder=True)
         xbmcplugin.endOfDirectory(plugin_handle)
 
+
     def show_matches_list(self, game_date, _for):
         """
         Creates the KODI list items with the contents of available matches
@@ -320,7 +328,7 @@ class ContentLoader(object):
         :param _for: Chosen sport
         :type _for: string
         """
-        self.utils.log('Matches list: ' + _for)
+        self.utils.log('Matches list: {0}'.format(_for))
         addon_data = self.utils.get_addon_data()
         plugin_handle = self.plugin_handle
         epg = self.get_epg(_for)
@@ -340,6 +348,7 @@ class ContentLoader(object):
                 sortMethod=xbmcplugin.SORT_METHOD_NONE)
         xbmcplugin.endOfDirectory(plugin_handle)
 
+
     def show_match_details(self, target, lane, _for):
         """
         Creates the KODI list items with the contents of a matche
@@ -354,10 +363,10 @@ class ContentLoader(object):
         """
         self.utils.log('Matches details')
         _session = self.session.get_session()
-        epg_url = self.constants.get_epg_url()
+        api_url = self.constants.get_api_url()
 
-        # load sport page from telekom
-        url = epg_url + '/' + target
+        # load sport page from Magenta Sport
+        url = '{0}/{1}'.format(api_url, target)
         raw_data = _session.get(url, verify=self.verify_ssl).text
 
         # parse data
@@ -394,6 +403,7 @@ class ContentLoader(object):
                         url=url)
         xbmcplugin.endOfDirectory(handle=self.plugin_handle)
 
+
     def play(self, video_id):
         """
         Plays a video by Video ID
@@ -401,9 +411,9 @@ class ContentLoader(object):
         :param target: Video ID
         :type target: string
         """
-        self.utils.log('Play video: ' + str(video_id))
+        self.utils.log('Play video: {0}'.format(video_id))
         use_inputstream = self.utils.use_inputstream()
-        self.utils.log('Using inputstream: ' + str(use_inputstream))
+        self.utils.log('Using inputstream: {0}'.format(use_inputstream))
         streams = self.get_stream_urls(video_id)
         for stream in streams:
             play_item = xbmcgui.ListItem(
@@ -416,7 +426,7 @@ class ContentLoader(object):
                     play_item.setContentLookup(False)
                     play_item.setMimeType('application/vnd.apple.mpegurl')
                     play_item.setProperty('inputstream.adaptive.stream_headers',
-                        'user-agent=' + self.utils.get_user_agent())
+                        'user-agent={0}'.format(self.utils.get_user_agent()))
                     play_item.setProperty('inputstream.adaptive.manifest_type', 'hls')
                     play_item.setProperty('inputstreamaddon', 'inputstream.adaptive')
             return xbmcplugin.setResolvedUrl(
@@ -427,6 +437,7 @@ class ContentLoader(object):
                 self.plugin_handle,
                 False,
                 xbmcgui.ListItem(path=''))
+
 
     def __parse_regular_event(self, target_url, details, match_time):
         """
@@ -444,6 +455,7 @@ class ContentLoader(object):
             target_url=target_url,
             details=details,
             match_time=match_time)
+
 
     def __parse_slot_events(self, element, details, match_time):
         """
@@ -478,6 +490,7 @@ class ContentLoader(object):
                             shorts=shorts))
         return events
 
+
     def __add_static_folders(self, statics, sport):
         """
         Adds static folder items to Kodi (if available)
@@ -503,6 +516,7 @@ class ContentLoader(object):
                         listitem=list_item,
                         isFolder=True)
 
+
     def __add_video_item(self, video, list_item, url):
         """
         Adds a playable video item to Kodi
@@ -520,6 +534,7 @@ class ContentLoader(object):
                 url=url,
                 listitem=list_item,
                 isFolder=False)
+
 
     def __parse_epg_element(self, use_slots, element, details, match_time):
         """
@@ -554,6 +569,7 @@ class ContentLoader(object):
             elements.append(slot)
         return elements
 
+
     @classmethod
     def get_player_ids(cls, src):
         """
@@ -569,6 +585,7 @@ class ContentLoader(object):
         stream_id = re.search('stream-id=.*', src).group(0).split('"')[1]
         customer_id = re.search('customer-id=.*', src).group(0).split('"')[1]
         return (stream_id, customer_id)
+
 
     @classmethod
     def __set_item_playable(cls, list_item, title):
@@ -587,6 +604,7 @@ class ContentLoader(object):
             'genre': 'Sports'})
         return list_item
 
+
     @classmethod
     def __use_slots(cls, data):
         """
@@ -599,6 +617,7 @@ class ContentLoader(object):
         if data.get('elements') is None:
             return False
         return True
+
 
     @classmethod
     def __is_playable_video_item(cls, video):

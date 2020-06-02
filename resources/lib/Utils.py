@@ -6,6 +6,7 @@
 
 """General plugin utils"""
 
+from __future__ import unicode_literals
 import platform
 import hashlib
 import urllib
@@ -13,9 +14,15 @@ import json
 import xbmc
 import xbmcaddon
 
+try:
+    import urllib.parse as urllib
+except:
+    import urllib
+
 
 class Utils(object):
     """General plugin utils"""
+
 
     def __init__(self, kodi_base_url, constants):
         """
@@ -28,6 +35,7 @@ class Utils(object):
         """
         self.constants = constants
         self.kodi_base_url = kodi_base_url
+
 
     def get_addon_data(self):
         """
@@ -43,7 +51,8 @@ class Utils(object):
             version=addon.getAddonInfo('version'),
             fanart=addon.getAddonInfo('fanart'),
             base_data_path=base_data_path,
-            cookie_path=base_data_path + 'COOKIE')
+            cookie_path='{0}COOKIE'.format(base_data_path))
+
 
     def log(self, msg, level=xbmc.LOGNOTICE):
         """
@@ -55,7 +64,8 @@ class Utils(object):
         :type level: int
         """
         addon_data = self.get_addon_data()
-        xbmc.log('[%s] %s' % (addon_data.get('plugin'), msg), level)
+        xbmc.log('[{0}] {1}'.format(addon_data.get('plugin'), msg), level)
+
 
     def get_local_string(self, string_id):
         """
@@ -66,10 +76,8 @@ class Utils(object):
         :returns:  string - Translated string
         """
         src = xbmc if string_id < 30000 else self.get_addon()
-        loc_string = src.getLocalizedString(string_id)
-        if isinstance(loc_string, unicode):
-            loc_string = loc_string.encode('utf-8')
-        return loc_string
+        return src.getLocalizedString(string_id)
+
 
     def build_url(self, query):
         """
@@ -79,7 +87,8 @@ class Utils(object):
         :type query: dict
         :returns:  string - Url
         """
-        return self.kodi_base_url + '?' + urllib.urlencode(query)
+        return '{0}?{1}'.format(self.kodi_base_url, urllib.urlencode(query))
+
 
     def use_inputstream(self):
         """
@@ -98,13 +107,14 @@ class Utils(object):
         inputstream_version = int(inputstream_version_raw.replace('.', ''))
         if inputstream_version < 999:
             inputstream_version = inputstream_version * 10
-        self.log('Kodi Version: ' + str(kodi_version))
-        self.log('Inputstream Version: ' + str(inputstream_version))
+        self.log('Kodi Version: {0}'.format(kodi_version))
+        self.log('Inputstream Version: {0}'.format(inputstream_version))
         # determine if we can use inputstream for HLS
         use_inputstream = False
         if kodi_version >= 17 and inputstream_version >= 2070:
             use_inputstream = True
         return use_inputstream
+
 
     def get_addon(self):
         """
@@ -113,6 +123,7 @@ class Utils(object):
         :returns:  xbmcaddon.Addon - Addon instance
         """
         return xbmcaddon.Addon(self.constants.get_addon_id())
+
 
     @classmethod
     def generate_hash(cls, text):
@@ -125,6 +136,7 @@ class Utils(object):
         """
         return hashlib.sha224(text).hexdigest()
 
+
     @classmethod
     def capitalize(cls, sentence):
         """
@@ -135,14 +147,15 @@ class Utils(object):
         :returns:  string - Capitalized sentence
         """
         cap = ''
-        words = sentence.decode('utf-8').split(' ')
+        words = sentence.split(' ')
         i = 0
         for word in words:
             if i > 0:
-                cap += ' '
-            cap += word[:1].upper() + word[1:].lower()
+                cap = '{0} '.format(cap)
+            cap = '{0}{1}{2}'.format(cap, word[:1].upper(), word[1:].lower())
             i += 1
-        return cap.encode('utf-8')
+        return cap
+
 
     @classmethod
     def get_kodi_version(cls):
@@ -161,13 +174,13 @@ class Utils(object):
             'id': 1
         }
         response = xbmc.executeJSONRPC(json.dumps(payload))
-        responses_uni = unicode(response, 'utf-8', errors='ignore')
-        response_serialized = json.loads(responses_uni)
+        response_serialized = json.loads(response)
         if 'error' not in response_serialized.keys():
             result = response_serialized.get('result', {})
             version_raw = result.get('version', {})
             version = version_raw.get('major', 17)
         return version
+
 
     @classmethod
     def get_inputstream_version(cls):
@@ -187,8 +200,7 @@ class Utils(object):
         }
         # execute the request
         response = xbmc.executeJSONRPC(json.dumps(payload))
-        responses_uni = unicode(response, 'utf-8', errors='ignore')
-        response_serialized = json.loads(responses_uni)
+        response_serialized = json.loads(response)
         if 'error' not in response_serialized.keys():
             result = response_serialized.get('result', {})
             addon = result.get('addon', {})
@@ -196,26 +208,23 @@ class Utils(object):
                 return addon.get('version', '1.0.0')
         return '1.0.0'
 
+
     @classmethod
     def get_user_agent(cls):
         """Determines the user agent string for the current platform
 
         :returns:  str -- User agent string
         """
-        chrome_version = 'Chrome/59.0.3071.115'
-        base = 'Mozilla/5.0 '
-        base += '%PL% '
-        base += 'AppleWebKit/537.36 (KHTML, like Gecko) '
-        base += '%CH_VER% Safari/537.36'.replace('%CH_VER%', chrome_version)
+        base = 'Mozilla/5.0 {0} AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.108 Safari/537.36'
         system = platform.system()
         # Mac OSX
         if system == 'Darwin':
-            return base.replace('%PL%', '(Macintosh; Intel Mac OS X 10_10_1)')
+            return base.format('(Macintosh; Intel Mac OS X 10_10_1)')
         # Windows
         if system == 'Windows':
-            return base.replace('%PL%', '(Windows NT 6.1; WOW64)')
+            return base.format('(Windows NT 6.1; WOW64)')
         # ARM based Linux
         if platform.machine().startswith('arm'):
-            return base.replace('%PL%', '(X11; CrOS armv7l 7647.78.0)')
+            return base.format('(X11; CrOS armv7l 7647.78.0)')
         # x86 Linux
-        return base.replace('%PL%', '(X11; Linux x86_64)')
+        return base.format('(X11; Linux x86_64)')

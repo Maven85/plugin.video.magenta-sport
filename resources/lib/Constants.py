@@ -11,162 +11,57 @@ ADDON_ID = 'plugin.video.magenta-sport'
 
 # urls for login & data retrival
 PRL = 'https://'
-BASE_URL = PRL + 'www.magentasport.de'
-LOGIN_LINK = BASE_URL + '/service/auth/web/login?headto=' + BASE_URL
-LOGIN_ENDPOINT = PRL + 'accounts.login.idm.telekom.com/factorx'
-EPG_URL = BASE_URL + '/api/v2/'
+BASE_URL = '{0}www.magentasport.de'.format(PRL)
+LOGIN_LINK = '{0}/service/auth/web/login?headto={0}'.format(BASE_URL)
+LOGIN_ENDPOINT = '{0}accounts.login.idm.telekom.com/factorx'.format(PRL)
+API_URL = '{0}/api/v2/'.format(BASE_URL)
+NAVIGATION_URL = '{0}navigation'.format(API_URL)
 STREAM_ROUTE = '/service/player/streamAccess'
 STREAM_PARAMS = 'videoId=%VIDEO_ID%&label=2780_hls'
-STREAM_DEFINITON_URL = BASE_URL + STREAM_ROUTE + '?' + STREAM_PARAMS
-FANART_URL = PRL + 'raw.githubusercontent.com/hubsif/kodi-telekomsport/master'
+STREAM_DEFINITON_URL = '{0}{1}?{2}'.format(BASE_URL, STREAM_ROUTE, STREAM_PARAMS)
 DAY_NAMES = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Sonntag']
 
 # core event types
-SPORTS = {
-    'liga3': {
-        'image': BASE_URL + '/images/editorial/Logos/Bewerb-Logos/3_liga.png',
-        'fanart': FANART_URL + '/resources/fanart/3.liga.jpg',
-        'name': 'Fußball - 3. Liga',
-        'indicators': ['3. Liga'],
-        'page': 'fussball/3-liga',
-        'target': '/page/64',
-        'epg': '',
+SPORTS_ADDITIONAL_INFOS = {
+    31: {
+        'prefix': 'Basketball - {0}'
     },
-    'ffb': {
-        'image': BASE_URL + '/images/packete/frauenbundesliga.png',
-        'fanart': FANART_URL + '/resources/fanart/frauen-bundesliga.jpg',
-        'name': 'Fußball -  Allianz Frauen-Bundesliga',
-        'indicators': [''],
-        'page': 'fussball/frauen-bundesliga',
-        'target': '/page/67',
-        'epg': '',
+    6941: {
+        'prefix': 'Basketball - {0}'
     },
-    'bbl': {
-        'image': BASE_URL + '/images/editorial/Logos/Bewerb-Logos/bbl.png',
-        'fanart': FANART_URL + '/resources/fanart/bbl.jpg',
-        'name': 'Basketball - easyCredit BBL',
-        'indicators': [''],
-        'page': 'basketball/bbl',
-        'target': '/page/31',
-        'epg': '',
+    37: {
+        'prefix': 'Basketball - {0}'
     },
-    'bblpokal': {
-        'image': BASE_URL + '/images/infoNeu/logos/bbl-pokal-white.png',
-        'fanart': '',
-        'name': 'Basketball - BBL Pokal',
-        'indicators': [''],
-        'page': '/basketball/bbl_pokal',
-        'target': '/page/6941',
-        'epg': '',
+    281: {
+        'prefix': 'Basketball - {0}'
     },
-    'bel': {
-        'image': BASE_URL + '/images/packete/euroleague.png',
-        'fanart': FANART_URL + '/resources/fanart/euroleague.jpg',
-        'name': 'Basketball - Turkish Airlines EuroLeague',
-        'indicators': [''],
-        'page': 'basketball/euroleague',
-        'target': '/page/37',
-        'epg': '',
+    40: {
+        'prefix': 'Basketball - {0}'
     },
-    'bec': {
-        'image': BASE_URL + '/images/infoNeu/logos/EuroCup.png',
-        'fanart': '',
-        'name': 'Basketball - 7Days EuroCup',
-        'indicators': [''],
-        'page': '/basketball/eurocup',
-        'target': '/page/281',
-        'epg': '',
+    52: {
+        'prefix': 'Eishockey - {0}'
     },
-    'bls': {
-        'image': BASE_URL + '/images/editorial/Logos/Bewerb-Logos/bbl-laenderspiele.png',
-        'fanart': '',
-        'name': 'Basketball - Basketball-Länderspiele',
-        'indicators': [''],
-        'page': '/basketball/laenderspiele',
-        'target': '/page/40',
-        'epg': '',
+    9144: {
+        'prefix': 'Eishockey - {0}'
     },
-    'del': {
-        'image': BASE_URL + '/images/editorial/Logos/Bewerb-Logos/del.png',
-        'fanart': FANART_URL + '/resources/fanart/del.jpg',
-        'name': 'Eishockey - Deutsche Eishockey Liga',
-        'indicators': [''],
-        'page': 'eishockey/del',
-        'target': '/page/52',
-        'epg': '',
+    13: {
+        'prefix': 'Fußball - {0}'
     },
-    'fcb': {
-        'image': BASE_URL + '/images/packete/fcbayerntv.png',
-        'fanart': FANART_URL + '/resources/fanart/fcbtv.jpg',
-        'name': 'FC Bayern.tv live',
-        'indicators': [''],
-        'page': 'fc-bayern-tv-live',
-        'target': '/page/13',
-        'epg': '',
+    64: {
+        'prefix': 'Fußball - {0}'
     },
-    'boxen': {
-        'image': BASE_URL + '/images/epg/ran-fighting.png',
-        'fanart': '',
-        'name': 'FIGHTING - Boxen',
-        'indicators': [''],
-        'page': 'fighting',
-        'target': '/page/85',
-        'epg': '',
+    67: {
+        'prefix': 'Fußball - {0}'
     },
-    'mma': {
-        'image': BASE_URL + '/images/epg/ran-fighting.png',
-        'fanart': '',
-        'name': 'FIGHTING - MMA',
-        'indicators': [''],
-        'page': 'fighting/mma',
-        'target': '/page/88',
-        'epg': '',
+    106: {
+        'prefix': 'Sky Sport Kompakt - {0}'
     },
-    'wrestling': {
-        'image': BASE_URL + '/images/epg/ran-fighting.png',
-        'fanart': '',
-        'name': 'FIGHTING - Wrestling',
-        'indicators': [''],
-        'page': 'fighting/wrestling',
-        'target': '/page/91',
-        'epg': '',
+    103: {
+        'prefix': 'Sky Sport Kompakt - {0}'
     },
-    'fbotr': {
-        'image': BASE_URL + '/images/epg/ran-fighting.png',
-        'fanart': '',
-        'name': 'FIGHTING - Weitere Kampfsportarten',
-        'indicators': [''],
-        'page': 'fighting/bestoftherest',
-        'target': '/page/296',
-        'epg': '',
-    },
-    'skybuli': {
-        'image': BASE_URL + '/images/editorial/Logos/Sky/bl_logo_SKY.png',
-        'fanart': FANART_URL + '/resources/fanart/bundesliga.jpg',
-        'name': 'Sky Sport Kompakt - Fußball-Bundesliga',
-        'indicators': [''],
-        'page': 'sky/bundesliga',
-        'target': '/page/106',
-        'epg': '',
-    },
-    'skychamp': {
-        'image': BASE_URL + '/images/editorial/Logos/Bewerb-Logos/UCL_Sky_composite_Outline_new__003_.png',
-        'fanart': FANART_URL + '/resources/fanart/uefa.jpg',
-        'name': 'Sky Sport Kompakt - UEFA Champions League',
-        'indicators': [''],
-        'page': 'sky/champions-league',
-        'target': '/page/103',
-        'epg': '',
-    },
-    'skyhandball': {
-        'image': BASE_URL + '/images/editorial/Logos/Bewerb-Logos/sky-dkb.png',
-        'fanart': FANART_URL + '/resources/fanart/hbl.jpg',
-        'name': 'Sky Sport Kompakt - DKB Handball-Bundesliga',
-        'indicators': [''],
-        'page': 'sky/handball-bundesliga',
-        'target': '/page/109',
-        'epg': '',
-    },
+    109: {
+        'prefix': 'Sky Sport Kompakt - {0}'
+    }
 }
 
 # static menu items for various lists
@@ -188,41 +83,46 @@ STATICS = {
 class Constants(object):
     """Access methods for static links & list of sports"""
 
+
     @classmethod
     def get_base_url(cls):
         """
-        Returns the Telekom sport base HTTP address
+        Returns the Magenta Sport base HTTP address
 
         :returns:  string -- Base address
         """
         return BASE_URL
 
+
     @classmethod
     def get_login_link(cls):
         """
-        Returns the Telekom Sport login HTTP route
+        Returns the Magenta Sport login HTTP route
 
         :returns:  string -- Login route
         """
         return LOGIN_LINK
 
+
     @classmethod
     def get_login_endpoint(cls):
         """
-        Returns the Telekom login SSO endpoint
+        Returns the Magenta Sport login SSO endpoint
 
         :returns:  string -- SSO login endpoint
         """
         return LOGIN_ENDPOINT
 
-    @classmethod
-    def get_epg_url(cls):
-        """
-        Returns the EPG API URL
 
-        :returns:  string -- EPG API URL
+    @classmethod
+    def get_api_url(cls):
         """
-        return EPG_URL
+        Returns the API URL
+
+        :returns:  string -- API URL
+        """
+        return API_URL
+
 
     @classmethod
     def get_stream_definition_url(cls):
@@ -237,14 +137,26 @@ class Constants(object):
         """
         return STREAM_DEFINITON_URL
 
-    @classmethod
-    def get_sports_list(cls):
-        """
-        Returns the list of available sports
 
-        :returns:  dict -- List of available sports
+    @classmethod
+    def get_navigation_url(cls):
         """
-        return SPORTS
+        Returns the navigation url
+
+        :returns:  string -- navigation URL
+        """
+        return NAVIGATION_URL
+
+
+    @classmethod
+    def get_sports_additional_infos(cls):
+        """
+        Returns dict of static sports additional informations
+
+        :returns:  dict -- dict of static sports additional informations
+        """
+        return SPORTS_ADDITIONAL_INFOS
+
 
     @classmethod
     def get_statics_list(cls):
@@ -255,6 +167,7 @@ class Constants(object):
         """
         return STATICS
 
+
     @classmethod
     def get_addon_id(cls):
         """
@@ -263,6 +176,7 @@ class Constants(object):
         :returns:  string -- Addon ID
         """
         return ADDON_ID
+
 
     @classmethod
     def get_day_names(cls):

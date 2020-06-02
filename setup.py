@@ -6,6 +6,7 @@
 
 """Setup"""
 
+from __future__ import unicode_literals
 import os
 import re
 import sys
@@ -89,7 +90,7 @@ def get_addon_data():
 
 
 if sys.version_info < REQUIRED_PYTHON_VERSION:
-    sys.exit('Python >= 2.7 is required. Your version:\n' + sys.version)
+    sys.exit('Python >= 2.7 is required. Your version:\n{0}'.format(sys.version))
 
 if __name__ == '__main__':
     ADDON_DATA = get_addon_data()
