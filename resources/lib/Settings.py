@@ -12,13 +12,8 @@ import base64
 import uuid
 import time
 import xbmc
-
-try:
-    import pyDes
-except ImportError:
-    USE_PYDES = False
-else:
-    USE_PYDES = True
+from Cryptodome.Cipher import DES3
+from Cryptodome.Util.Padding import pad, unpad
 
 
 class Settings(object):
@@ -39,7 +34,6 @@ class Settings(object):
         self.utils = utils
         self.dialogs = dialogs
         self.constants = constants
-        self.use_encryption = USE_PYDES
         self.addon_id = self.constants.get_addon_id()
 
 
@@ -69,14 +63,9 @@ class Settings(object):
         :type data: str
         :returns:  string -- Encoded data
         """
-        key_handle = pyDes.triple_des(
-            self.uniq_id(delay=2),
-            pyDes.CBC,
-            py2_encode("\0\0\0\0\0\0\0\0"),
-            padmode=pyDes.PAD_PKCS5)
-        encrypted = key_handle.encrypt(
-            data=data)
-        return base64.b64encode(s=encrypted)
+        key_handle = DES3.new(self.uniq_id(delay=2), DES3.MODE_CBC, iv=b'\0\0\0\0\0\0\0\0')
+        encrypted = key_handle.encrypt(pad(data, DES3.block_size))
+        return base64.b64encode(encrypted)
 
 
     def decode(self, data):
@@ -90,13 +79,8 @@ class Settings(object):
         if data == '':
             return data
 
-        key_handle = pyDes.triple_des(
-            self.uniq_id(delay=2),
-            pyDes.CBC,
-            py2_encode("\0\0\0\0\0\0\0\0"),
-            padmode=pyDes.PAD_PKCS5)
-        decrypted = key_handle.decrypt(
-            data=base64.b64decode(s=data))
+        key_handle = DES3.new(self.uniq_id(delay=2), DES3.MODE_CBC, iv=b'\0\0\0\0\0\0\0\0')
+        decrypted = unpad(key_handle.decrypt(base64.b64decode(data)), DES3.block_size)
         return decrypted.decode('utf-8')
 
 
@@ -122,7 +106,7 @@ class Settings(object):
         user = self.dialogs.show_email_dialog()
         password = self.dialogs.show_password_dialog()
         do_encrypt = addon.getSetting('encrypt_credentials')
-        if do_encrypt == 'true' and self.use_encryption is True:
+        if do_encrypt == 'true':
             _mail = self.encode(user) if user != '' else user
             _password = self.encode(password) if password != '' else password
         else:
