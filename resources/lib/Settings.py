@@ -105,13 +105,8 @@ class Settings(object):
         addon = self.utils.get_addon()
         user = self.dialogs.show_email_dialog()
         password = self.dialogs.show_password_dialog()
-        do_encrypt = addon.getSetting('encrypt_credentials')
-        if do_encrypt == 'true':
-            _mail = self.encode(user) if user != '' else user
-            _password = self.encode(password) if password != '' else password
-        else:
-            _mail = user
-            _password = password
+        _mail = self.encode(user) if user != '' else user
+        _password = self.encode(password) if password != '' else password
         addon.setSetting('email', _mail)
         addon.setSetting('password', _password)
         return (user, password)

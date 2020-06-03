@@ -63,9 +63,9 @@ msgctxt "#32009"
 msgid "Match not yet available"
 msgstr "Das Spiel ist zur Zeit (noch) nicht verfügbar"
 
-msgctxt "#32010"
-msgid "Encrypt credentials"
-msgstr "Anmeldedaten verschlüsseln"
+# msgctxt "#32010"
+# msgid ""
+# msgstr ""
 
 msgctxt "#32011"
 msgid "Use Inputstream (if available)"
