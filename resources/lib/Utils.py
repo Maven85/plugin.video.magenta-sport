@@ -90,32 +90,6 @@ class Utils(object):
         return '{0}?{1}'.format(self.kodi_base_url, urllib.urlencode(query))
 
 
-    def use_inputstream(self):
-        """
-        Determines if inoutstream can/should be used to play the videos
-
-        Note: At least Kodi 17.4 & Inoutstream 2.0.7 are needed, because
-        of HSL support
-
-        :returns:  bool - Use inputstream to play videos
-        """
-        raw_setting = self.get_addon().getSetting('use_inputstream')
-        if raw_setting == 'false':
-            return False
-        kodi_version = int(self.get_kodi_version())
-        inputstream_version_raw = self.get_inputstream_version()
-        inputstream_version = int(inputstream_version_raw.replace('.', ''))
-        if inputstream_version < 999:
-            inputstream_version = inputstream_version * 10
-        self.log('Kodi Version: {0}'.format(kodi_version))
-        self.log('Inputstream Version: {0}'.format(inputstream_version))
-        # determine if we can use inputstream for HLS
-        use_inputstream = False
-        if kodi_version >= 17 and inputstream_version >= 2070:
-            use_inputstream = True
-        return use_inputstream
-
-
     def get_addon(self):
         """
         Returns an Kodi addon instance
