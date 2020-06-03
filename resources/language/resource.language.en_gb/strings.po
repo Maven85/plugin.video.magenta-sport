@@ -63,9 +63,9 @@ msgctxt "#32009"
 msgid "Match not yet available"
 msgstr ""
 
-msgctxt "#32010"
-msgid "Encrypt credentials"
-msgstr ""
+# msgctxt "#32010"
+# msgid ""
+# msgstr ""
 
 msgctxt "#32011"
 msgid "Use Inputstream (if available)"
