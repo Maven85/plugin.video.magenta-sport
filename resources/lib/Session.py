@@ -38,9 +38,7 @@ class Session(object):
         self.utils = util
         self.settings = settings
         addon = self.utils.get_addon()
-        verify_ssl = True if addon.getSetting('verifyssl') == 'True' else False
         self.session_file = self.utils.get_addon_data().get('cookie_path')
-        self.verify_ssl = verify_ssl
         self._session = self.load_session()
         self.load_session_cookies()
 
@@ -126,9 +124,7 @@ class Session(object):
                 self.clear_session()
 
         # get contents of login page
-        res = self.get_session().get(
-            self.constants.get_login_link(),
-            verify=self.verify_ssl)
+        res = self.get_session().get(self.constants.get_login_link())
 
         for i in [0, 1]:
             soup = BeautifulSoup(res.text, 'html.parser')
@@ -153,7 +149,6 @@ class Session(object):
             # attribute to determine of the login was successfull
             res = self.get_session().post(
                 self.constants.get_login_endpoint(),
-                verify=self.verify_ssl,
                 data=payload)
 
         success = self._session.cookies.get_dict().get('displayname')
