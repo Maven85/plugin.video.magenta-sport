@@ -90,6 +90,7 @@ class Session(object):
         loads & deserializes Cookie file if exists
         """
         if path.isfile(self.session_file):
+            _cookies = None
             try:
                 with open(self.session_file, 'rb') as handle:
                     _cookies = utils.cookiejar_from_dict(pickle.load(handle))
@@ -101,7 +102,7 @@ class Session(object):
                 else:
                     USER, PASSWORD = self.settings.set_credentials()
                 self.login(USER, PASSWORD, forceLogin=True)
-            if hasattr(self, '_cookies'):
+            if _cookies:
                 self._session.cookies = _cookies
 
 
@@ -124,33 +125,38 @@ class Session(object):
             else:
                 self.clear_session()
 
-        payload = {}
         # get contents of login page
         res = self.get_session().get(
             self.constants.get_login_link(),
             verify=self.verify_ssl)
 
-        soup = BeautifulSoup(res.text, 'html.parser')
-        # find all <input/> items in the login form & grep their data
-        for item in soup.find(id='login').find_all('input'):
-            if item.attrs.get('name') is not None:
-                payload[item.attrs.get('name')] = item.attrs.get('value', '')
-        # overwrite user & password fields with our settings data
-        payload['pw_usr'] = user
-        payload['pw_pwd'] = password
-        # persist the session
-        # payload['persist_session'] = 1
-        # add empyt sumbit field (it is the value of the button in the page...)
-        payload['pw_submit'] = ''
-        # do the login & read the incoming html <title/>
-        # attribute to determine of the login was successfull
-        login_res = self.get_session().post(
-            self.constants.get_login_endpoint(),
-            verify=self.verify_ssl,
-            data=payload)
+        for i in [0, 1]:
+            soup = BeautifulSoup(res.text, 'html.parser')
+            # find all <input/> items in the login form & grep their data
+            payload = {}
+            for item in soup.find(id='login').find_all('input'):
+                if item.attrs.get('name') and (item.attrs.get('name').startswith('xsrf') or item.attrs.get('name') == 'tid'):
+                    payload[item.attrs.get('name')] = item.attrs.get('value', '')
+            # overwrite user & password fields with our settings data
+            if i == 0:
+                payload['pw_usr'] = user
+                payload['hidden_pwd'] = ''
+            else:
+                payload['hidden_usr'] = user
+                payload['pw_pwd'] = password
 
-        soup = BeautifulSoup(login_res.text, 'html.parser')
-        success = not soup.find('input', {'id': 'pw_usr'})
+            # persist the session
+            # payload['persist_session'] = 1
+            # add empyt sumbit field (it is the value of the button in the page...)
+            payload['pw_submit'] = ''
+            # do the login & read the incoming html <title/>
+            # attribute to determine of the login was successfull
+            res = self.get_session().post(
+                self.constants.get_login_endpoint(),
+                verify=self.verify_ssl,
+                data=payload)
+
+        success = self._session.cookies.get_dict().get('displayname')
         if success:
             self.save_session()
             return True
