@@ -409,23 +409,21 @@ class ContentLoader(object):
         :type target: string
         """
         self.utils.log('Play video: {0}'.format(video_id))
-        use_inputstream = self.utils.use_inputstream()
-        self.utils.log('Using inputstream: {0}'.format(use_inputstream))
         streams = self.get_stream_urls(video_id)
         for stream in streams:
             play_item = xbmcgui.ListItem(
                 path=self.get_m3u_url(streams.get(stream)))
-            if use_inputstream is True:
-                import inputstreamhelper
-                is_helper = inputstreamhelper.Helper('hls')
-                if is_helper.check_inputstream():
-                    # pylint: disable=E1101
-                    play_item.setContentLookup(False)
-                    play_item.setMimeType('application/vnd.apple.mpegurl')
-                    play_item.setProperty('inputstream.adaptive.stream_headers',
-                        'user-agent={0}'.format(self.utils.get_user_agent()))
-                    play_item.setProperty('inputstream.adaptive.manifest_type', 'hls')
-                    play_item.setProperty('inputstreamaddon', 'inputstream.adaptive')
+
+            import inputstreamhelper
+            is_helper = inputstreamhelper.Helper('hls')
+            if is_helper.check_inputstream():
+                # pylint: disable=E1101
+                play_item.setContentLookup(False)
+                play_item.setMimeType('application/vnd.apple.mpegurl')
+                play_item.setProperty('inputstream.adaptive.stream_headers',
+                    'user-agent={0}'.format(self.utils.get_user_agent()))
+                play_item.setProperty('inputstream.adaptive.manifest_type', 'hls')
+                play_item.setProperty('inputstreamaddon', 'inputstream.adaptive')
             return xbmcplugin.setResolvedUrl(
                 self.plugin_handle,
                 True,
