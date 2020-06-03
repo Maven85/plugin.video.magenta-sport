@@ -71,9 +71,9 @@ msgctxt "#32011"
 msgid "Use Inputstream (if available)"
 msgstr ""
 
-msgctxt "#32012"
-msgid "Verify SSL certs"
-msgstr ""
+# msgctxt "#32012"
+# msgid ""
+# msgstr ""
 
 msgctxt "#32013"
 msgid "Logout successful"

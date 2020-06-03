@@ -40,8 +40,6 @@ class ContentLoader(object):
         self.item_helper = item_helper
         self.plugin_handle = handle
         addon = self.utils.get_addon()
-        verify_ssl = True if addon.getSetting('verifyssl') == 'True' else False
-        self.verify_ssl = verify_ssl
 
 
     def get_epg(self, sport):
@@ -125,7 +123,7 @@ class ContentLoader(object):
         :returns:  dict - Parsed EPG
         """
         _api_url = '{0}{1}'.format(self.constants.get_api_url(), self.constants.get_sports().get(sport, {}).get('epg', ''))
-        return json.loads(_session.get(_api_url, verify=self.verify_ssl).text)
+        return json.loads(_session.get(_api_url).text)
 
 
     def get_stream_urls(self, video_id):
@@ -141,8 +139,7 @@ class ContentLoader(object):
         stream_access = json.loads(_session.post(
             self.constants.get_stream_definition_url().replace(
                 '%VIDEO_ID%',
-                str(video_id)),
-            verify=self.verify_ssl
+                str(video_id))
             ).text)
         if stream_access.get('status') == 'success':
             stream_urls['Live'] = 'https:{0}'.format(stream_access.get('data', {}).get('stream-access', [None, None])[1])
@@ -160,7 +157,7 @@ class ContentLoader(object):
         """
         m3u_url = ''
         _session = self.session.get_session()
-        xml_content = _session.get(stream_url, verify=self.verify_ssl)
+        xml_content = _session.get(stream_url)
         root = ET.fromstring(xml_content.text)
         for child in root:
             m3u_url = '{0}?hdnea={1}'.format(child.attrib.get('url', ''), child.attrib.get('auth', ''))
@@ -172,7 +169,7 @@ class ContentLoader(object):
         self.utils.log('Sport selection')
         _navigation_url = self.constants.get_navigation_url()
         _session = self.session.get_session()
-        sports = json.loads(_session.get(_navigation_url, verify=self.verify_ssl).text).get('data').get('league_filter')
+        sports = json.loads(_session.get(_navigation_url).text).get('data').get('league_filter')
 
         for sport in sports:
             url = self.utils.build_url({'for': sport})
@@ -206,7 +203,7 @@ class ContentLoader(object):
 
         # load sport page from Magenta Sport
         url = '{0}{1}'.format(api_url, sport.get('target'))
-        raw_data = _session.get(url, verify=self.verify_ssl).text
+        raw_data = _session.get(url).text
 
         # parse data
         data = json.loads(raw_data)
@@ -293,7 +290,7 @@ class ContentLoader(object):
 
         # load sport page from Magenta Sport
         url = '{0}/{1}'.format(api_url, lane)
-        raw_data = _session.get(url, verify=self.verify_ssl).text
+        raw_data = _session.get(url).text
 
         # parse data
         data = json.loads(raw_data)
@@ -367,7 +364,7 @@ class ContentLoader(object):
 
         # load sport page from Magenta Sport
         url = '{0}/{1}'.format(api_url, target)
-        raw_data = _session.get(url, verify=self.verify_ssl).text
+        raw_data = _session.get(url).text
 
         # parse data
         data = json.loads(raw_data)
