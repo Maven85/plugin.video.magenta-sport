@@ -28,7 +28,7 @@ class Cache(object):
         window = self.__get_window_instance()
         try:
             cached_items = pickle.loads(window.getProperty('memcache'))
-        except (EOFError, TypeError):
+        except (EOFError, TypeError, pickle.UnpicklingError):
             cached_items = {}
         if len(cached_items) < 1:
             window.setProperty('memcache', pickle.dumps(cached_items, 0))
