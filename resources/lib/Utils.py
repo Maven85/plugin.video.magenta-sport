@@ -134,11 +134,11 @@ class Utils(object):
     @classmethod
     def get_kodi_version(cls):
         """
-        Retrieves the Kodi version (Defaults to 17)
+        Retrieves the Kodi version (Defaults to 18)
 
         :returns:  string - Kodi version
         """
-        version = 17
+        version = 18
         payload = {
             'jsonrpc': '2.0',
             'method': 'Application.GetProperties',
@@ -152,7 +152,7 @@ class Utils(object):
         if 'error' not in response_serialized.keys():
             result = response_serialized.get('result', {})
             version_raw = result.get('version', {})
-            version = version_raw.get('major', 17)
+            version = version_raw.get('major', 18)
         return version
 
 
