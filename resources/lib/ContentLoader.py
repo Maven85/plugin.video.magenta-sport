@@ -423,7 +423,7 @@ class ContentLoader(object):
                 play_item.setProperty('inputstream.adaptive.stream_headers',
                     'user-agent={0}'.format(self.utils.get_user_agent()))
                 play_item.setProperty('inputstream.adaptive.manifest_type', 'hls')
-                play_item.setProperty('inputstreamaddon', 'inputstream.adaptive')
+                play_item.setProperty('inputstreamaddon' if self.utils.get_kodi_version() == 18 else 'inputstream', 'inputstream.adaptive')
             return xbmcplugin.setResolvedUrl(
                 self.plugin_handle,
                 True,
