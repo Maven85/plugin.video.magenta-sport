@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<addon id="plugin.video.magenta-sport" version="1.2.12" name="Magenta Sport" provider-name="Maven">
+<addon id="plugin.video.magenta-sport" version="1.2.13" name="Magenta Sport" provider-name="Maven">
     <requires>
         <import addon="xbmc.python" version="2.26.0"/>
         <import addon="script.module.beautifulsoup4" version="4.6.2"/>
@@ -19,7 +19,7 @@
             <screenshot>resources\screen_3.png</screenshot>
         </assets>
         <summary lang="de_DE">Magenta Sport</summary>
-        <description lang="de_DE">Magenta Sport ist ein Portal für Live Eishockey, Basketball, 3. Lig, Sky Handball, Sky Bundeliga/Champions-League Konferenzen &amp; Frauenfußball Bundesliga Übertragungen.</description>
+        <description lang="de_DE">Magenta Sport ist ein Portal für Live Eishockey, Basketball, 3. Liga, Sky Handball, Sky Bundeliga/Champions-League Konferenzen &amp; Frauenfußball Bundesliga Übertragungen.</description>
         <disclaimer lang="de_DE">Inoffizielles Addon - Benutzung auf eigene Gefahr. Das Plugin wurde nicht von der Deutschen Telekom beauftragt &amp; bereitgestellt.</disclaimer>
         <summary lang="en_GB">Magenta Sport</summary>
         <description lang="en_GB">Magenta Sport is a portal for live Icehockey, Basketball, German 3rd Ligue, Sky Handball, Sky Bundeliga/Champions-League conferences &amp; womans football matches.</description>
