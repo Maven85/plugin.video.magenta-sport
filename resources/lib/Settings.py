@@ -64,7 +64,7 @@ class Settings(object):
         :returns:  string -- Encoded data
         """
         key_handle = DES3.new(self.uniq_id(delay=2), DES3.MODE_CBC, iv=b'\0\0\0\0\0\0\0\0')
-        encrypted = key_handle.encrypt(pad(data, DES3.block_size))
+        encrypted = key_handle.encrypt(pad(data.encode('utf-8'), DES3.block_size))
         return base64.b64encode(encrypted)
 
 
