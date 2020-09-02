@@ -54,7 +54,7 @@ class Utils(object):
             cookie_path='{0}COOKIE'.format(base_data_path))
 
 
-    def log(self, msg, level=xbmc.LOGNOTICE):
+    def log(self, msg, level=xbmc.LOGINFO):
         """
         Logs a message to the Kodi log (default debug)
 
