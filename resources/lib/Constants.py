@@ -6,6 +6,8 @@
 
 """Static links & list of sports"""
 
+from __future__ import unicode_literals
+
 # KODI addon id
 ADDON_ID = 'plugin.video.magenta-sport'
 
