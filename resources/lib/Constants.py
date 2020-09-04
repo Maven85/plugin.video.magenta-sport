@@ -16,8 +16,9 @@ PRL = 'https://'
 BASE_URL = '{0}www.magentasport.de'.format(PRL)
 LOGIN_LINK = '{0}/service/auth/web/login?headto={0}'.format(BASE_URL)
 LOGIN_ENDPOINT = '{0}accounts.login.idm.telekom.com/factorx'.format(PRL)
-API_URL = '{0}/api/v2/'.format(BASE_URL)
-NAVIGATION_URL = '{0}navigation'.format(API_URL)
+API_BASE_URL = '{0}/api/{{0}}'.format(BASE_URL)
+API_NAVIGATION_PATH = '/navigation'
+API_SALT = '55!#r%Rn3%xn?U?PX*k'
 STREAM_ROUTE = '/service/player/streamAccess'
 STREAM_PARAMS = 'videoId=%VIDEO_ID%&label=2780_hls'
 STREAM_DEFINITON_URL = '{0}{1}?{2}'.format(BASE_URL, STREAM_ROUTE, STREAM_PARAMS)
@@ -117,13 +118,23 @@ class Constants(object):
 
 
     @classmethod
-    def get_api_url(cls):
+    def get_api_base_url(cls):
         """
-        Returns the API URL
+        Returns the API base URL
 
-        :returns:  string -- API URL
+        :returns:  string -- API base URL
         """
-        return API_URL
+        return API_BASE_URL
+
+
+    @classmethod
+    def get_api_salt(cls):
+        """
+        Returns the API salt
+
+        :returns:  string -- API salt
+        """
+        return API_SALT
 
 
     @classmethod
@@ -141,13 +152,13 @@ class Constants(object):
 
 
     @classmethod
-    def get_navigation_url(cls):
+    def get_api_navigation_path(cls):
         """
-        Returns the navigation url
+        Returns the navigation path
 
-        :returns:  string -- navigation URL
+        :returns:  string -- navigation path
         """
-        return NAVIGATION_URL
+        return API_NAVIGATION_PATH
 
 
     @classmethod

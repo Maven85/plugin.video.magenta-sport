@@ -115,7 +115,7 @@ class ItemHelper(object):
         :returns:  dict -- List item info properties
         """
         return {
-            'hash': self.utils.generate_hash(target_url),
+            'hash': self.utils.generate_hash224(target_url),
             'url': '{0}{1}'.format(self.constants.get_base_url(), target_url),
             'title': self.build_epg_title(
                 details=details,

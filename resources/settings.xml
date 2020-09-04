@@ -5,6 +5,8 @@
         <setting id="switch_account" type="action" label="32003" action="RunPlugin(plugin://plugin.video.magenta-sport/?action=switch_account)"/>
         <setting id="email" type="text" default="" visible="false"/>
         <setting id="password" type="text"  default="" visible="false"/>
-        <setting id="settings_asked" type="bool" default="false" visible="false"/>
+    </category>
+    <category label="32010">
+        <setting id="api_version" type="labelenum" label="32011" values="V2|V3" default="V2"/>
     </category>
 </settings>

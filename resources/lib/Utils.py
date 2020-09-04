@@ -7,17 +7,18 @@
 """General plugin utils"""
 
 from __future__ import unicode_literals
-import platform
-import hashlib
-import urllib
-import json
+from datetime import datetime
+from hashlib import sha224, sha256
+from json import dumps, loads
+from platform import machine, system
+from re import search
 import xbmc
 import xbmcaddon
 
 try:
-    import urllib.parse as urllib
+    from urllib.parse import urlencode
 except:
-    import urllib
+    from urllib import urlencode
 
 
 class Utils(object):
@@ -87,7 +88,7 @@ class Utils(object):
         :type query: dict
         :returns:  string - Url
         """
-        return '{0}?{1}'.format(self.kodi_base_url, urllib.urlencode(query))
+        return '{0}?{1}'.format(self.kodi_base_url, urlencode(query))
 
 
     def get_addon(self):
@@ -99,8 +100,50 @@ class Utils(object):
         return xbmcaddon.Addon(self.constants.get_addon_id())
 
 
+    def build_api_url(self, url, query=dict()):
+        """
+        Generates an URL for api usage
+
+        :param path: api path
+        :type query: string
+        :param query: Map of request params
+        :type query: dict
+        :returns:  string - Url
+        """
+        match = search('.*?(\/api\/v3\/[^?]*)', url)
+        if match:
+            path = match.group(1)
+            query.update(dict(token=self.generate_api_token(path)))
+        if query:
+            return '{0}?{1}'.format(url, urlencode(query))
+        else:
+            return url
+
+
+    def generate_api_token(self, path):
+        """
+        Generates an api token
+
+        :param url: path for which the token is generated
+        :type path: string
+        :returns:  string - token
+        """
+        salt = self.constants.get_api_salt()
+        utc = int((datetime.now().replace(hour=0, minute=0, second=0, microsecond=0) - datetime(1970, 1, 1)).total_seconds())
+        return self.generate_hash256('{0}{1}{2}'.format(salt, utc, path))
+
+
+    def get_api_url(self):
+        """
+        Returns the API URL
+
+        :returns:  string -- API URL
+        """
+        return self.constants.get_api_base_url().format(self.get_addon().getSetting('api_version').lower())
+
+
     @classmethod
-    def generate_hash(cls, text):
+    def generate_hash224(cls, text):
         """
         Returns an hash for a given text
 
@@ -108,7 +151,19 @@ class Utils(object):
         :type text: string
         :returns:  string - Hash
         """
-        return hashlib.sha224(text).hexdigest()
+        return sha224(text.encode('utf-8')).hexdigest()
+
+
+    @classmethod
+    def generate_hash256(cls, text):
+        """
+        Returns an hash for a given text
+
+        :param text: String to be hashed
+        :type text: string
+        :returns:  string - Hash
+        """
+        return sha256(text.encode('utf-8')).hexdigest()
 
 
     @classmethod
@@ -147,8 +202,8 @@ class Utils(object):
             },
             'id': 1
         }
-        response = xbmc.executeJSONRPC(json.dumps(payload))
-        response_serialized = json.loads(response)
+        response = xbmc.executeJSONRPC(dumps(payload))
+        response_serialized = loads(response)
         if 'error' not in response_serialized.keys():
             result = response_serialized.get('result', {})
             version_raw = result.get('version', {})
@@ -173,8 +228,8 @@ class Utils(object):
             }
         }
         # execute the request
-        response = xbmc.executeJSONRPC(json.dumps(payload))
-        response_serialized = json.loads(response)
+        response = xbmc.executeJSONRPC(dumps(payload))
+        response_serialized = loads(response)
         if 'error' not in response_serialized.keys():
             result = response_serialized.get('result', {})
             addon = result.get('addon', {})
@@ -189,16 +244,16 @@ class Utils(object):
 
         :returns:  str -- User agent string
         """
-        base = 'Mozilla/5.0 {0} AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.108 Safari/537.36'
-        system = platform.system()
+        base = 'Mozilla/5.0 {0} AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.83 Safari/537.36'
+        system_str = system()
         # Mac OSX
-        if system == 'Darwin':
+        if system_str == 'Darwin':
             return base.format('(Macintosh; Intel Mac OS X 10_10_1)')
         # Windows
-        if system == 'Windows':
-            return base.format('(Windows NT 6.1; WOW64)')
+        if system_str == 'Windows':
+            return base.format('(Windows NT 10.0; Win64; x64)')
         # ARM based Linux
-        if platform.machine().startswith('arm'):
+        if machine().startswith('arm'):
             return base.format('(X11; CrOS armv7l 7647.78.0)')
         # x86 Linux
         return base.format('(X11; Linux x86_64)')
