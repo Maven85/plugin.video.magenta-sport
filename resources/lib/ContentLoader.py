@@ -8,10 +8,9 @@
 
 from __future__ import unicode_literals
 from kodi_six.utils import py2_decode
-import re
-import json
+from json import loads
+from re import search
 import xml.etree.ElementTree as ET
-from datetime import date
 import xbmcgui
 import xbmcplugin
 
@@ -122,8 +121,9 @@ class ContentLoader(object):
         :type _session: requests.session
         :returns:  dict - Parsed EPG
         """
-        _api_url = '{0}{1}'.format(self.constants.get_api_url(), self.constants.get_sports().get(sport, {}).get('epg', ''))
-        return json.loads(_session.get(_api_url).text)
+        url = '{0}{1}'.format(self.utils.get_api_url(), self.constants.get_sports_additional_infos().get(sport, {}).get('epg', ''))
+        url = self.utils.build_api_url(url)
+        return loads(_session.get(url).text)
 
 
     def get_stream_urls(self, video_id):
@@ -136,7 +136,7 @@ class ContentLoader(object):
         """
         stream_urls = {}
         _session = self.session.get_session()
-        stream_access = json.loads(_session.post(
+        stream_access = loads(_session.post(
             self.constants.get_stream_definition_url().replace(
                 '%VIDEO_ID%',
                 str(video_id))
@@ -167,9 +167,10 @@ class ContentLoader(object):
     def show_sport_selection(self):
         """Creates the KODI list items for the sport selection"""
         self.utils.log('Sport selection')
-        _navigation_url = self.constants.get_navigation_url()
+        url = '{0}{1}'.format(self.utils.get_api_url(), self.constants.get_api_navigation_path())
+        url = self.utils.build_api_url(url)
         _session = self.session.get_session()
-        sports = json.loads(_session.get(_navigation_url).text).get('data').get('league_filter')
+        sports = loads(_session.get(url).text).get('data').get('league_filter')
 
         for sport in sports:
             url = self.utils.build_url({'for': sport})
@@ -199,14 +200,14 @@ class ContentLoader(object):
         """
         self.utils.log('({0}) Main Menu'.format(sport))
         _session = self.session.get_session()
-        api_url = self.constants.get_api_url()
 
         # load sport page from Magenta Sport
-        url = '{0}{1}'.format(api_url, sport.get('target'))
+        url = '{0}{1}'.format(self.utils.get_api_url(), sport.get('target'))
+        url = self.utils.build_api_url(url)
         raw_data = _session.get(url).text
 
         # parse data
-        data = json.loads(raw_data)
+        data = loads(raw_data)
         data = data.get('data', {}).get('content', [])
 
         lanes = []
@@ -285,15 +286,15 @@ class ContentLoader(object):
         """
         self.utils.log('({0}) Lane {1}'.format(sport, lane))
         _session = self.session.get_session()
-        api_url = self.constants.get_api_url()
         plugin_handle = self.plugin_handle
 
         # load sport page from Magenta Sport
-        url = '{0}/{1}'.format(api_url, lane)
+        url = '{0}{1}'.format(self.utils.get_api_url(), lane)
+        url = self.utils.build_api_url(url)
         raw_data = _session.get(url).text
 
         # parse data
-        data = json.loads(raw_data)
+        data = loads(raw_data)
         data = data.get('data', [])
 
         # generate entries
@@ -360,14 +361,14 @@ class ContentLoader(object):
         """
         self.utils.log('Matches details')
         _session = self.session.get_session()
-        api_url = self.constants.get_api_url()
 
         # load sport page from Magenta Sport
-        url = '{0}/{1}'.format(api_url, target)
+        url = '{0}{1}'.format(self.utils.get_api_url(), target)
+        url = self.utils.build_api_url(url)
         raw_data = _session.get(url).text
 
         # parse data
-        data = json.loads(raw_data)
+        data = loads(raw_data)
         data = data.get('data', [])
 
         # check if content is available
@@ -574,11 +575,11 @@ class ContentLoader(object):
         :type src: string
         :returns:  tuple - Stream & customer id
         """
-        stream_id_raw = re.search('stream-id=.*', src)
+        stream_id_raw = search('stream-id=.*', src)
         if stream_id_raw is None:
             return (None, None)
-        stream_id = re.search('stream-id=.*', src).group(0).split('"')[1]
-        customer_id = re.search('customer-id=.*', src).group(0).split('"')[1]
+        stream_id = search('stream-id=.*', src).group(0).split('"')[1]
+        customer_id = search('customer-id=.*', src).group(0).split('"')[1]
         return (stream_id, customer_id)
 
 

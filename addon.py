@@ -7,8 +7,8 @@
 """Kodi plugin for Magenta Sport (https://magentasport.de)"""
 
 from __future__ import unicode_literals
+from ast import literal_eval
 from sys import argv
-import ast
 from resources.lib.Cache import Cache
 from resources.lib.Constants import Constants
 from resources.lib.ContentLoader import ContentLoader
@@ -18,6 +18,11 @@ from resources.lib.Session import Session
 from resources.lib.Settings import Settings
 from resources.lib.Utils import Utils
 
+try:
+    from urllib.parse import parse_qsl
+except:
+    from urlparse import parse_qsl
+
 # setup plugin base stuff
 try:
     PLUGIN_HANDLE = int(argv[1])
@@ -25,11 +30,6 @@ try:
 except ValueError:
     PLUGIN_HANDLE = 1
     KODI_BASE_URL = ''
-
-try:
-    from urllib.parse import parse_qsl
-except:
-    from urlparse import parse_qsl
 
 # init plugin object structure
 CONSTANTS = Constants()
@@ -58,7 +58,7 @@ def router(paramstring):
     :returns:  bool -- Matching route found
     """
     params = dict(parse_qsl(paramstring))
-    if params.get('for') is not None: params['for'] = ast.literal_eval(params.get('for'))
+    if params.get('for') is not None: params['for'] = literal_eval(params.get('for'))
     keys = params.keys()
     # settings action routes
     user, password, processed = __settings_action(params=params)

@@ -7,11 +7,11 @@
 """Stores, loads & builds up a request session object. Provides login"""
 
 from __future__ import unicode_literals
+from bs4 import BeautifulSoup
 from os import path, remove
 from requests import session, utils
-from bs4 import BeautifulSoup
+from time import time
 import xbmcvfs
-import time
 
 try:
     import cPickle as pickle
@@ -118,7 +118,7 @@ class Session(object):
         # check if the suer is already logged in
         if forceLogin is False and path.isfile(self.session_file):
             file_time = xbmcvfs.Stat(self.session_file).st_mtime()
-            if (time.time() - file_time) / 3600 < 24 and self.get_session().cookies.get('displayname'):
+            if (time() - file_time) / 3600 < 24 and self.get_session().cookies.get('displayname'):
                 return True
             else:
                 self.clear_session()

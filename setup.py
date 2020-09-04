@@ -7,9 +7,9 @@
 """Setup"""
 
 from __future__ import unicode_literals
-import os
-import re
-import sys
+from os.path import abspath, dirname, join
+from re import search
+from sys import exit, version, version_info
 from setuptools import find_packages, setup
 
 REQUIRED_PYTHON_VERSION = (2, 7)
@@ -53,29 +53,29 @@ EXTRA_DEPENDENCIES = {
 
 def get_addon_data():
     """Loads the Kodi plugin data from addon.xml"""
-    root_dir = os.path.dirname(os.path.abspath(__file__))
-    pathname = os.path.join(root_dir, 'addon.xml')
+    root_dir = dirname(abspath(__file__))
+    pathname = join(root_dir, 'addon.xml')
     with open(pathname, 'rb') as addon_xml:
         addon_xml_contents = addon_xml.read()
-        _id = re.search(
+        _id = search(
             r'(?<!xml )id="(.+?)"',
             addon_xml_contents).group(1)
-        author = re.search(
+        author = search(
             r'(?<!xml )provider-name="(.+?)"',
             addon_xml_contents).group(1)
-        name = re.search(
+        name = search(
             r'(?<!xml )name="(.+?)"',
             addon_xml_contents).group(1)
-        version = re.search(
+        version = search(
             r'(?<!xml )version="(.+?)"',
             addon_xml_contents).group(1)
-        desc = re.search(
+        desc = search(
             r'(?<!xml )description lang="en_GB">(.+?)<',
             addon_xml_contents).group(1)
-        email = re.search(
+        email = search(
             r'(?<!xml )email>(.+?)<',
             addon_xml_contents).group(1)
-        source = re.search(
+        source = search(
             r'(?<!xml )email>(.+?)<',
             addon_xml_contents).group(1)
         return {
@@ -89,8 +89,8 @@ def get_addon_data():
         }
 
 
-if sys.version_info < REQUIRED_PYTHON_VERSION:
-    sys.exit('Python >= 2.7 is required. Your version:\n{0}'.format(sys.version))
+if version_info < REQUIRED_PYTHON_VERSION:
+    exit('Python >= 2.7 is required. Your version:\n{0}'.format(version))
 
 if __name__ == '__main__':
     ADDON_DATA = get_addon_data()

@@ -12,11 +12,11 @@
     </extension>
     <extension point="xbmc.addon.metadata">
         <assets>
-            <icon>resources\icon.png</icon>
-            <fanart>resources\fanart.jpg</fanart>
-            <screenshot>resources\screen_1.png</screenshot>
-            <screenshot>resources\screen_2.png</screenshot>
-            <screenshot>resources\screen_3.png</screenshot>
+            <icon>resources/media/icon.png</icon>
+            <fanart>resources/media/fanart.jpg</fanart>
+            <screenshot>resources/media/screen_1.png</screenshot>
+            <screenshot>resources/media/screen_2.png</screenshot>
+            <screenshot>resources/media/screen_3.png</screenshot>
         </assets>
         <summary lang="de_DE">Magenta Sport</summary>
         <description lang="de_DE">Magenta Sport ist ein Portal für Live Eishockey, Basketball, 3. Liga, Sky Handball, Sky Bundeliga/Champions-League Konferenzen &amp; Frauenfußball Bundesliga Übertragungen.</description>

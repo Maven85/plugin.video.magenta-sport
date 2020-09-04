@@ -8,12 +8,12 @@
 
 from __future__ import unicode_literals
 from kodi_six.utils import py2_encode
-import base64
-import uuid
-import time
-import xbmc
+from base64 import b64encode, b64decode
 from Cryptodome.Cipher import DES3
 from Cryptodome.Util.Padding import pad, unpad
+from time import sleep
+from uuid import NAMESPACE_DNS, uuid5
+import xbmc
 
 
 class Settings(object):
@@ -47,7 +47,7 @@ class Settings(object):
         """
         mac_addr = self.__get_mac_address(delay=delay)
         if py2_encode(':') in mac_addr and delay == 2:
-            return uuid.uuid5(uuid.NAMESPACE_DNS, str(mac_addr)).bytes
+            return uuid5(NAMESPACE_DNS, str(mac_addr)).bytes
         else:
             error_msg = '[{0}] error: failed to get device id ({1})'
             self.utils.log(error_msg.format(self.addon_id, str(mac_addr)))
@@ -65,7 +65,7 @@ class Settings(object):
         """
         key_handle = DES3.new(self.uniq_id(delay=2), DES3.MODE_CBC, iv=b'\0\0\0\0\0\0\0\0')
         encrypted = key_handle.encrypt(pad(data.encode('utf-8'), DES3.block_size))
-        return base64.b64encode(encrypted)
+        return b64encode(encrypted)
 
 
     def decode(self, data):
@@ -80,7 +80,7 @@ class Settings(object):
             return data
 
         key_handle = DES3.new(self.uniq_id(delay=2), DES3.MODE_CBC, iv=b'\0\0\0\0\0\0\0\0')
-        decrypted = unpad(key_handle.decrypt(base64.b64decode(data)), DES3.block_size)
+        decrypted = unpad(key_handle.decrypt(b64decode(data)), DES3.block_size)
         return decrypted.decode('utf-8')
 
 
@@ -151,6 +151,6 @@ class Settings(object):
         i = 0
         while py2_encode(':') not in mac_addr and i < 3:
             i += 1
-            time.sleep(delay)
+            sleep(delay)
             mac_addr = xbmc.getInfoLabel('Network.MacAddress')
         return mac_addr
