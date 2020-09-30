@@ -40,9 +40,10 @@ ITEM_HELPER = ItemHelper(constants=CONSTANTS, utils=UTILS)
 SETTINGS = Settings(utils=UTILS, dialogs=DIALOGS, constants=CONSTANTS)
 SESSION = Session(constants=CONSTANTS, util=UTILS, settings=SETTINGS)
 CONTENT_LOADER = ContentLoader(
+    cache=CACHE,
     session=SESSION,
     item_helper=ITEM_HELPER,
-    cache=CACHE,
+    dialogs=DIALOGS,
     handle=PLUGIN_HANDLE)
 
 
@@ -59,6 +60,7 @@ def router(paramstring):
     """
     params = dict(parse_qsl(paramstring))
     if params.get('for') is not None: params['for'] = literal_eval(params.get('for'))
+    if params.get('sport') is not None: params['sport'] = literal_eval(params.get('sport'))
     keys = params.keys()
     # settings action routes
     user, password, processed = __settings_action(params=params)
@@ -159,11 +161,12 @@ def __match_details_action(params, processed):
     :type processed: bool
     :returns:  bool -- Route matched
     """
-    if params.get('for') is not None and params.get('target') is not None and processed is False:
+    if params.get('for') is not None and params.get('target') is not None and params.get('sport') is not None and processed is False:
         CONTENT_LOADER.show_match_details(
             params.get('target'),
             params.get('lane'),
-            params.get('for'))
+            params.get('for'),
+            params.get('sport'))
         return True
     return False
 

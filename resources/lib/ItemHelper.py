@@ -27,12 +27,14 @@ class ItemHelper(object):
         self.utils = utils
 
 
-    def build_description(self, item):
+    def build_description(self, item, show_title=True):
         """
         Generates an item description
 
         :param item: Item to be described
         :type item: dict
+        :param show_title: Whether the title should be in the description
+        :type show_title: bool
         :returns:  string -- Item description
         """
         desc = ''
@@ -42,27 +44,10 @@ class ItemHelper(object):
             if desc != '':
                 desc = '{0}- '.format(desc)
             desc = '{0}{1}'.format(desc, item.get('metadata', {}).get('description_regular'))
-        if desc != '':
+        if show_title and desc != '':
             desc = '{0}:\n'.format(desc)
-        desc = '{0}{1} '.format(desc, self.build_title(item))
-        if item.get('metadata', {}).get('scheduled_start', {}).get('utc_timestamp') and item.get('metadata', {}).get('scheduled_end', {}).get('utc_timestamp'):
-            now = datetime.now()
-            sdt = datetime.fromtimestamp(float(item.get('metadata', {}).get('scheduled_start', {}).get('utc_timestamp')))
-            edt = datetime.fromtimestamp(float(item.get('metadata', {}).get('scheduled_end', {}).get('utc_timestamp')))
-            match_date, match_time, match_weekday = self.datetime_from_utc(item.get('metadata'), item)
-            if now > sdt and now < edt:
-                desc = '{0}\n\nSeit {1} Uhr'.format(desc, match_time)
-            elif now < sdt:
-                delta = (sdt.date() - now.date()).days
-                if delta == 0:
-                    match_date = 'Heute'
-                elif delta == 1:
-                    match_date = 'Morgen'
-                elif delta == 2:
-                    match_date = 'Übermorgen'
-                else:
-                    match_date = sdt.strftime('{0}, {1}').format(match_weekday, match_date)
-                desc = '{0}\n\n{1} {2} Uhr'.format(desc, match_date, match_time)
+        if show_title:
+            desc = '{0}{1} '.format(desc, self.build_title(item))
 
         return desc
 
@@ -261,7 +246,7 @@ class ItemHelper(object):
 
     def datetime_from_utc(self, metadata, element=None):
         """
-        Generates a homan readable time from an items UTC timestamp
+        Generates a human readable time from an items UTC timestamp
 
         :param metadata: Item metadata
         :type metadata: dict

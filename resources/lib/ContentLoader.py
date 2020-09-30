@@ -8,6 +8,7 @@
 
 from __future__ import unicode_literals
 from kodi_six.utils import py2_decode
+from datetime import datetime
 from json import loads
 from re import search
 import xml.etree.ElementTree as ET
@@ -19,7 +20,7 @@ class ContentLoader(object):
     """Fetches and parses content from the Magenta Sport API & website"""
 
 
-    def __init__(self, cache, session, item_helper, handle):
+    def __init__(self, cache, session, item_helper, dialogs, handle):
         """
         Injects instances & the plugin handle
 
@@ -37,6 +38,7 @@ class ContentLoader(object):
         self.cache = cache
         self.session = session
         self.item_helper = item_helper
+        self.dialogs = dialogs
         self.plugin_handle = handle
         addon = self.utils.get_addon()
 
@@ -167,11 +169,34 @@ class ContentLoader(object):
     def show_sport_selection(self):
         """Creates the KODI list items for the sport selection"""
         self.utils.log('Sport selection')
-        url = '{0}{1}'.format(self.utils.get_api_url(), self.constants.get_api_navigation_path())
-        url = self.utils.build_api_url(url)
         _session = self.session.get_session()
-        sports = loads(_session.get(url).text).get('data').get('league_filter')
-
+        url = '{0}{1}'.format(self.utils.get_api_url(), self.constants.get_api_navigation_path())
+        url = self.utils.build_api_url(url)              
+        nav_data = loads(_session.get(url).text)
+        
+        # get matches
+        url = '{0}{1}'.format(self.utils.get_api_url(), nav_data.get('data').get('main').get('target'))
+        url = self.utils.build_api_url(url) 
+        live_data = loads(_session.get(url).text)
+        for content in live_data.get('data').get('content'):
+            if content.get('title').lower() == 'live':
+                for group_element in content.get('group_elements'):
+                    if group_element.get('type') == 'eventLane':
+                        live_counter = 0
+                        for data in group_element.get('data'):
+                            if data.get('metadata').get('state') == 'live':
+                                live_counter += 1
+                        group_element.update(dict(data=None))
+                        url = self.utils.build_url({'for': group_element, 'lane': group_element.get('data_url')})
+                        list_item = xbmcgui.ListItem(label='[B]{0} ({1})[/B]'.format(content.get('title'), live_counter))
+                        list_item.setArt({'thumb': '{0}{1}'.format(self.constants.get_base_url(), live_data.get('data').get('metadata').get('web').get('image').replace(' ', '%20'))})
+                        xbmcplugin.addDirectoryItem(
+                            handle=self.plugin_handle,
+                            url=url,
+                            listitem=list_item,
+                            isFolder=True)
+          
+        sports = nav_data.get('data').get('league_filter')
         for sport in sports:
             url = self.utils.build_url({'for': sport})
             label = py2_decode(self.constants.get_sports_additional_infos().get(sport.get('id'), {}).get('prefix', '{0}')).format(sport.get('title'))
@@ -184,9 +209,9 @@ class ContentLoader(object):
                 url=url,
                 listitem=list_item,
                 isFolder=True)
-            xbmcplugin.addSortMethod(
-                handle=self.plugin_handle,
-                sortMethod=xbmcplugin.SORT_METHOD_DATE)
+        xbmcplugin.addSortMethod(
+            handle=self.plugin_handle,
+            sortMethod=xbmcplugin.SORT_METHOD_DATE)
         xbmcplugin.endOfDirectory(self.plugin_handle)
 
 
@@ -284,7 +309,6 @@ class ContentLoader(object):
         :param lane: Chosen event-lane
         :type lane: string
         """
-        self.utils.log('({0}) Lane {1}'.format(sport, lane))
         _session = self.session.get_session()
         plugin_handle = self.plugin_handle
 
@@ -295,24 +319,46 @@ class ContentLoader(object):
 
         # parse data
         data = loads(raw_data)
-        data = data.get('data', [])
+        data = data.get('data', dict())
 
         # generate entries
         if data and data.get('data'):
+            eventday = None;
+            mt = None
             for item in data.get('data'):
-                info = {}
-                url = self.utils.build_url(
-                    {'for': sport, 'lane': lane, 'target': item.get('target')})
-                list_item = xbmcgui.ListItem(
-                    label=self.item_helper.build_title(item))
+                if item.get('metadata').get('state') != 'post' and item.get('metadata', {}).get('scheduled_start', {}).get('utc_timestamp'):
+                    sdt = datetime.fromtimestamp(float(item.get('metadata', {}).get('scheduled_start', {}).get('utc_timestamp')))
+                    mt = self.item_helper.datetime_from_utc(item.get('metadata'), item)
+                    if eventday is None or eventday < sdt.date():
+                        eventday = sdt.date()
+                        list_item = xbmcgui.ListItem('[COLOR gold]{0}, {1}[/COLOR]'.format(mt[2], mt[0]))
+                        list_item.setArt(dict(thumb='DefaultYear.png'))
+                        xbmcplugin.addDirectoryItem(
+                            handle=plugin_handle,
+                            url=None,
+                            listitem=list_item,
+                            isFolder=False)
+
+                url = self.utils.build_url({'for': item, 'lane': lane, 'target': item.get('target'), 'sport': sport})
+                label = self.item_helper.build_title(item)
+                if mt:
+                    label = '[COLOR red]{0}[/COLOR] {1} [COLOR blue]{2}[/COLOR]'.format(mt[1], label, self.item_helper.build_description(item, show_title=False))
+                list_item = xbmcgui.ListItem(label=label)
                 list_item = self.item_helper.set_art(list_item, sport, item)
-                info['plot'] = self.item_helper.build_description(item)
+                info = dict(plot=self.item_helper.build_description(item))
                 list_item.setInfo('video', info)
+                if item.get('metadata').get('state') == 'pre' and sdt > datetime.now():
+                    isFolder = False
+                else:
+                    isFolder = True
+
                 xbmcplugin.addDirectoryItem(
                     handle=plugin_handle,
                     url=url,
                     listitem=list_item,
-                    isFolder=True)
+                    isFolder=isFolder)
+                mt = None
+
         xbmcplugin.endOfDirectory(plugin_handle)
 
 
@@ -347,7 +393,7 @@ class ContentLoader(object):
         xbmcplugin.endOfDirectory(plugin_handle)
 
 
-    def show_match_details(self, target, lane, _for):
+    def show_match_details(self, target, lane, _for, sport):
         """
         Creates the KODI list items with the contents of a matche
         (Gamereport, Interviews, Rematch, etc.)
@@ -356,10 +402,20 @@ class ContentLoader(object):
         :type target: string
         :param lane: Chosen event-lane
         :type lane: string
-        :param _for: Chosen sport
+        :param _for: Chosen item
         :type _for: string
+        :param sport: Chosen sport
+        :type sport: string
         """
         self.utils.log('Matches details')
+
+        # check if content is available
+        if _for.get('metadata').get('state') == 'pre' and _for.get('metadata', {}).get('scheduled_start', {}).get('utc_timestamp'):
+            sdt = datetime.fromtimestamp(float(_for.get('metadata', {}).get('scheduled_start', {}).get('utc_timestamp')))
+            if sdt > datetime.now():
+                self.dialogs.show_not_available_dialog()
+                return None
+
         _session = self.session.get_session()
 
         # load sport page from Magenta Sport
@@ -385,13 +441,13 @@ class ContentLoader(object):
                         label=title)
                     list_item = self.item_helper.set_art(
                         list_item=list_item,
-                        sport=_for,
+                        sport=sport,
                         item=video)
                     list_item = self.__set_item_playable(
                         list_item=list_item,
                         title=title)
                     url = self.utils.build_url({
-                        'for': _for,
+                        'for': sport,
                         'lane': lane,
                         'target': target,
                         'video_id': str(video.get('videoID'))})
