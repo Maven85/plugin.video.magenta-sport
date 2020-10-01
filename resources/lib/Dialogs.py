@@ -86,6 +86,20 @@ class Dialogs(object):
             self.utils.get_local_string(32008))
 
 
+    def show_ok_dialog(self, msg):
+        """
+        Shows modal with custom message
+
+        :param msg: Custom message
+        :type msg: string
+        :returns:  bool - Dialog shown
+        """
+        dialog = xbmcgui.Dialog()
+        dialog.ok(
+            self.utils.get_addon_data().get('plugin'),
+            msg)
+
+
     def show_logout_successful_notification(self):
         """
         Shows logout successful notification for 5 sec

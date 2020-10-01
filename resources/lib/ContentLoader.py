@@ -145,6 +145,8 @@ class ContentLoader(object):
             ).text)
         if stream_access.get('status') == 'success':
             stream_urls['Live'] = 'https:{0}'.format(stream_access.get('data', {}).get('stream-access', [None, None])[1])
+        elif stream_access.get('status') == 'error':
+            self.dialogs.show_ok_dialog(stream_access.get('message'))
         return stream_urls
 
 

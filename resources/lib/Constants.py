@@ -19,7 +19,7 @@ LOGIN_ENDPOINT = '{0}accounts.login.idm.telekom.com/factorx'.format(PRL)
 API_BASE_URL = '{0}/api/{{0}}'.format(BASE_URL)
 API_NAVIGATION_PATH = '/navigation'
 API_SALT = '55!#r%Rn3%xn?U?PX*k'
-STREAM_ROUTE = '/service/player/streamAccess'
+STREAM_ROUTE = '/service/player/v2/streamAccess'
 STREAM_PARAMS = 'videoId=%VIDEO_ID%&label=2780_hls'
 STREAM_DEFINITON_URL = '{0}{1}?{2}'.format(BASE_URL, STREAM_ROUTE, STREAM_PARAMS)
 DAY_NAMES = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Sonntag']
