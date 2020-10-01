@@ -425,17 +425,21 @@ class ContentLoader(object):
 
         # parse data
         data = loads(raw_data)
-        data = data.get('data', [])
+        data = data.get('data', dict())
 
         # check if content is available
         if data.get('content') is None:
             xbmcplugin.endOfDirectory(self.plugin_handle)
             return None
 
+        added_vids = list()
         for videos in data.get('content', []):
             vids = videos.get('group_elements', [{}])[0].get('data')
             for video in vids:
-                if self.__is_playable_video_item(video=video):
+                if self.__is_playable_video_item(video=video) \
+                        and self.__add_video_item(video=video, video_types=_for.get('metadata').get('video_types')) \
+                        and video.get('videoID') not in added_vids:
+                    added_vids.append(video.get('videoID'))
                     title = video.get('title', '')
                     list_item = xbmcgui.ListItem(
                         label=title)
@@ -451,10 +455,11 @@ class ContentLoader(object):
                         'lane': lane,
                         'target': target,
                         'video_id': str(video.get('videoID'))})
-                    self.__add_video_item(
-                        video=video,
-                        list_item=list_item,
-                        url=url)
+                    xbmcplugin.addDirectoryItem(
+                        handle=self.plugin_handle,
+                        url=url,
+                        listitem=list_item,
+                        isFolder=False)
         xbmcplugin.endOfDirectory(handle=self.plugin_handle)
 
 
@@ -488,7 +493,7 @@ class ContentLoader(object):
         return xbmcplugin.setResolvedUrl(
                 self.plugin_handle,
                 False,
-                xbmcgui.ListItem(path=''))
+                xbmcgui.ListItem())
 
 
     def __parse_regular_event(self, target_url, details, match_time):
@@ -569,23 +574,18 @@ class ContentLoader(object):
                         isFolder=True)
 
 
-    def __add_video_item(self, video, list_item, url):
+    def __add_video_item(self, video, video_types):
         """
-        Adds a playable video item to Kodi
+        Determines if a playable video item should be added to Kodi
 
         :param video: Video details
         :type video: dict
-        :param list_item: Kodi list item
-        :type list_item: xbmcgui.ListItem
-        :param url: Video url
-        :type url: string
+        :param video_types: Type of the video
+        :type video_types: list
+        :returns:  bool - Video should be added
         """
-        if video.get('islivestream', True) is True:
-            xbmcplugin.addDirectoryItem(
-                handle=self.plugin_handle,
-                url=url,
-                listitem=list_item,
-                isFolder=False)
+        if video.get('islivestream', True) is True or ('Magazin' in video_types):
+            return True
 
 
     def __parse_epg_element(self, use_slots, element, details, match_time):
