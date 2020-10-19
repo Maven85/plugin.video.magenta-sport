@@ -10,7 +10,6 @@ from __future__ import unicode_literals
 from datetime import datetime
 from hashlib import sha224, sha256
 from json import dumps, loads
-from platform import machine, system
 from re import search
 import xbmc
 import xbmcaddon
@@ -244,16 +243,37 @@ class Utils(object):
 
         :returns:  str -- User agent string
         """
-        base = 'Mozilla/5.0 {0} AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.83 Safari/537.36'
-        system_str = system()
+        base = 'Mozilla/5.0 {0} AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.75 Safari/537.36'
+        platform_str = cls.get_platform()
         # Mac OSX
-        if system_str == 'Darwin':
+        if platform_str == 'MacOSX':
             return base.format('(Macintosh; Intel Mac OS X 10_10_1)')
         # Windows
-        if system_str == 'Windows':
+        if platform_str == 'Windows':
             return base.format('(Windows NT 10.0; Win64; x64)')
-        # ARM based Linux
-        if machine().startswith('arm'):
-            return base.format('(X11; CrOS armv7l 7647.78.0)')
         # x86 Linux
         return base.format('(X11; Linux x86_64)')
+    
+    
+    @classmethod
+    def get_platform(cls):
+        platform = 'Unknown'
+    
+        if xbmc.getCondVisibility('system.platform.osx'):
+            platform = 'MacOSX'
+        if xbmc.getCondVisibility('system.platform.atv2'):
+            platform = 'AppleTV2'
+        if xbmc.getCondVisibility('system.platform.tvos'):
+            platform = 'tvOS'
+        if xbmc.getCondVisibility('system.platform.ios'):
+            platform = 'iOS'
+        if xbmc.getCondVisibility('system.platform.windows'):
+            platform = 'Windows'
+        if xbmc.getCondVisibility('system.platform.raspberrypi'):
+            platform = 'RaspberryPi'
+        if xbmc.getCondVisibility('system.platform.linux'):
+            platform = 'Linux'
+        if xbmc.getCondVisibility('system.platform.android'):
+            platform = 'Android'
+    
+        return platform
