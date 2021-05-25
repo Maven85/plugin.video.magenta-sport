@@ -7,6 +7,7 @@
 """General plugin utils"""
 
 from __future__ import unicode_literals
+from kodi_six.utils import PY2
 from datetime import datetime
 from hashlib import sha224, sha256
 from json import dumps, loads
@@ -14,10 +15,12 @@ from re import search
 import xbmc
 import xbmcaddon
 
-try:
-    from urllib.parse import urlencode
-except:
+if PY2:
     from urllib import urlencode
+    from xbmc import translatePath as xbmcvfs_translatePath
+else:
+    from urllib.parse import urlencode
+    from xbmcvfs import translatePath as xbmcvfs_translatePath
 
 
 class Utils(object):
@@ -45,7 +48,7 @@ class Utils(object):
         :returns:  dict - Addon data
         """
         addon = self.get_addon()
-        base_data_path = xbmc.translatePath(addon.getAddonInfo('profile'))
+        base_data_path = xbmcvfs_translatePath(addon.getAddonInfo('profile'))
         return dict(
             plugin=addon.getAddonInfo('name'),
             version=addon.getAddonInfo('version'),
@@ -253,12 +256,12 @@ class Utils(object):
             return base.format('(Windows NT 10.0; Win64; x64)')
         # x86 Linux
         return base.format('(X11; Linux x86_64)')
-    
-    
+
+
     @classmethod
     def get_platform(cls):
         platform = 'Unknown'
-    
+
         if xbmc.getCondVisibility('system.platform.osx'):
             platform = 'MacOSX'
         if xbmc.getCondVisibility('system.platform.atv2'):
@@ -275,5 +278,5 @@ class Utils(object):
             platform = 'Linux'
         if xbmc.getCondVisibility('system.platform.android'):
             platform = 'Android'
-    
+
         return platform
