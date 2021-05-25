@@ -12,7 +12,7 @@ from datetime import datetime
 from json import loads
 from re import search
 import xml.etree.ElementTree as ET
-import xbmcgui
+import xbmcgui, xbmc
 import xbmcplugin
 
 
@@ -173,31 +173,31 @@ class ContentLoader(object):
         self.utils.log('Sport selection')
         _session = self.session.get_session()
         url = '{0}{1}'.format(self.utils.get_api_url(), self.constants.get_api_navigation_path())
-        url = self.utils.build_api_url(url)              
+        url = self.utils.build_api_url(url)
         nav_data = loads(_session.get(url).text)
-        
-        # get matches
-        url = '{0}{1}'.format(self.utils.get_api_url(), nav_data.get('data').get('main').get('target'))
-        url = self.utils.build_api_url(url) 
+
+        # get live matches
+        url = '{0}{1}'.format(self.utils.get_api_url(), nav_data.get('data').get('header')[0].get('target'))
+        url = self.utils.build_api_url(url)
         live_data = loads(_session.get(url).text)
         for content in live_data.get('data').get('content'):
-            if content.get('title').lower() == 'live':
-                for group_element in content.get('group_elements'):
-                    if group_element.get('type') == 'eventLane':
-                        live_counter = 0
-                        for data in group_element.get('data'):
-                            if data.get('metadata').get('state') == 'live':
+            for group_element in content.get('group_elements'):
+                if group_element.get('type') == 'programm':
+                    live_counter = 0
+                    for data in group_element.get('data'):
+                        for slot in data.get('slots'):
+                            if slot.get('is_live'):
                                 live_counter += 1
-                        group_element.update(dict(data=None))
-                        url = self.utils.build_url({'for': group_element, 'lane': group_element.get('data_url')})
-                        list_item = xbmcgui.ListItem(label='[B]{0} ({1})[/B]'.format(content.get('title'), live_counter))
-                        list_item.setArt({'thumb': '{0}{1}'.format(self.constants.get_base_url(), live_data.get('data').get('metadata').get('web').get('image').replace(' ', '%20'))})
-                        xbmcplugin.addDirectoryItem(
-                            handle=self.plugin_handle,
-                            url=url,
-                            listitem=list_item,
-                            isFolder=True)
-          
+                    group_element.update(dict(data=None))
+                    url = self.utils.build_url({'for': group_element, 'lane': group_element.get('data_url')})
+                    list_item = xbmcgui.ListItem(label='[B]Live ({0})[/B]'.format(live_counter))
+                    list_item.setArt({'thumb': '{0}{1}'.format(self.constants.get_base_url(), live_data.get('data').get('metadata').get('web').get('image').replace(' ', '%20'))})
+                    xbmcplugin.addDirectoryItem(
+                        handle=self.plugin_handle,
+                        url=url,
+                        listitem=list_item,
+                        isFolder=True)
+
         sports = nav_data.get('data').get('league_filter')
         for sport in sports:
             url = self.utils.build_url({'for': sport})
@@ -328,40 +328,60 @@ class ContentLoader(object):
             eventday = None;
             mt = None
             for item in data.get('data'):
-                if item.get('metadata').get('state') != 'post' and item.get('metadata', {}).get('scheduled_start', {}).get('utc_timestamp'):
-                    sdt = datetime.fromtimestamp(float(item.get('metadata', {}).get('scheduled_start', {}).get('utc_timestamp')))
-                    mt = self.item_helper.datetime_from_utc(item.get('metadata'), item)
-                    if eventday is None or eventday < sdt.date():
-                        eventday = sdt.date()
-                        list_item = xbmcgui.ListItem('[COLOR gold]{0}, {1}[/COLOR]'.format(mt[2], mt[0]))
-                        list_item.setArt(dict(thumb='DefaultYear.png'))
-                        xbmcplugin.addDirectoryItem(
-                            handle=plugin_handle,
-                            url=None,
-                            listitem=list_item,
-                            isFolder=False)
+                if 'slots' in item:
+                    for slot in item.get('slots'):
+                        for event in slot.get('events'):
+                            if event.get('metadata').get('state') != 'post' and event.get('metadata', {}).get('scheduled_start', {}).get('utc_timestamp'):
+                                sdt = datetime.fromtimestamp(float(event.get('metadata', {}).get('scheduled_start', {}).get('utc_timestamp')))
+                                mt = self.item_helper.datetime_from_utc(event.get('metadata'), event)
+                                if eventday is None or eventday < sdt.date():
+                                    eventday = sdt.date()
+                                    list_item = xbmcgui.ListItem('[COLOR gold]{0}, {1}[/COLOR]'.format(mt[2], mt[0]))
+                                    list_item.setArt(dict(thumb='DefaultYear.png'))
+                                    xbmcplugin.addDirectoryItem(
+                                        handle=plugin_handle,
+                                        url=None,
+                                        listitem=list_item,
+                                        isFolder=False)
 
-                url = self.utils.build_url({'for': item, 'lane': lane, 'target': item.get('target'), 'sport': sport})
-                label = self.item_helper.build_title(item)
-                if mt:
-                    label = '[COLOR red]{0}[/COLOR] {1} [COLOR blue]{2}[/COLOR]'.format(mt[1], label, self.item_helper.build_description(item, show_title=False))
-                list_item = xbmcgui.ListItem(label=label)
-                list_item = self.item_helper.set_art(list_item, sport, item)
-                info = dict(plot=self.item_helper.build_description(item))
-                list_item.setInfo('video', info)
-                if item.get('metadata').get('state') == 'pre' and sdt > datetime.now():
-                    isFolder = False
+                            self.add_event_lane_item(sport, lane, event, mt, False)
+                            mt = None
                 else:
-                    isFolder = True
-
-                xbmcplugin.addDirectoryItem(
-                    handle=plugin_handle,
-                    url=url,
-                    listitem=list_item,
-                    isFolder=isFolder)
-                mt = None
+                    self.add_event_lane_item(sport, lane , item)
 
         xbmcplugin.endOfDirectory(plugin_handle)
+
+
+    def add_event_lane_item(self, sport, lane, _for, match_time=None, isFolder=True):
+        """
+        Adds a KODI list items with the contents of an event-lanes
+        for a selected sport & lane
+
+        :param sport: Chosen sport
+        :type sport: string
+        :param lane: Chosen event-lane
+        :type lane: string
+        :param _for: Item that will be added
+        :type lane: string
+        :param match_time: Match time of the item
+        :type lane: string
+        :param isFolder: Whether the item is a folder
+        :type lane: bool
+        """
+        url = self.utils.build_url({'for': _for, 'lane': lane, 'target': _for.get('target'), 'sport': sport})
+        label = self.item_helper.build_title(_for)
+        if match_time:
+            label = '[COLOR red]{0}[/COLOR] {1} [COLOR blue]{2}[/COLOR]'.format(match_time[1], label, self.item_helper.build_description(_for, show_title=False))
+        list_item = xbmcgui.ListItem(label=label)
+        list_item = self.item_helper.set_art(list_item, sport, _for)
+        info = dict(plot=self.item_helper.build_description(_for))
+        list_item.setInfo('video', info)
+
+        xbmcplugin.addDirectoryItem(
+            handle=self.plugin_handle,
+            url=url,
+            listitem=list_item,
+            isFolder=isFolder)
 
 
     def show_matches_list(self, game_date, _for):
