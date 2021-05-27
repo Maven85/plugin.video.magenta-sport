@@ -357,24 +357,26 @@ class ContentLoader(object):
                                 for event in slot.get('events'):
                                     events.append(event)
 
-        eventday = None;
-        mt = None
-        for event in events:
-            if event.get('metadata').get('state') != 'post' and event.get('metadata', {}).get('scheduled_start', {}).get('utc_timestamp'):
-                sdt = datetime.fromtimestamp(float(event.get('metadata', {}).get('scheduled_start', {}).get('utc_timestamp')))
-                mt = self.item_helper.datetime_from_utc(event.get('metadata'), event)
-                if eventday is None or eventday < sdt.date():
-                    eventday = sdt.date()
-                    list_item = xbmcgui.ListItem('[COLOR gold]{0}, {1}[/COLOR]'.format(mt[2], mt[0]))
-                    list_item.setArt(dict(thumb='DefaultYear.png'))
-                    xbmcplugin.addDirectoryItem(
-                        handle=plugin_handle,
-                        url=None,
-                        listitem=list_item,
-                        isFolder=False)
+        if events:
+            now = datetime.now()
+            eventday = None;
+            mt = None
+            for event in events:
+                if event.get('metadata').get('state') != 'post' and event.get('metadata').get('scheduled_start').get('utc_timestamp'):
+                    sdt = datetime.fromtimestamp(float(event.get('metadata').get('scheduled_start').get('utc_timestamp')))
+                    mt = self.item_helper.datetime_from_utc(event.get('metadata'), event)
+                    if eventday is None or eventday < sdt.date():
+                        eventday = sdt.date()
+                        list_item = xbmcgui.ListItem('[COLOR gold]{0}, {1}[/COLOR]'.format(mt[2], mt[0]))
+                        list_item.setArt(dict(thumb='DefaultYear.png'))
+                        xbmcplugin.addDirectoryItem(
+                            handle=plugin_handle,
+                            url=None,
+                            listitem=list_item,
+                            isFolder=False)
 
-                self.add_event_lane_item(sport, lane, event, mt, isFolder=not (event.get('metadata').get('state') == 'pre' and sdt > now))
-                mt = None
+                    self.add_event_lane_item(sport, lane, event, mt, isFolder=not (event.get('metadata').get('state') == 'pre' and sdt > now))
+                    mt = None
 
         xbmcplugin.endOfDirectory(plugin_handle)
 
