@@ -60,7 +60,7 @@ msgid "Error fetching device id"
 msgstr ""
 
 msgctxt "#32009"
-msgid "Match not yet available"
+msgid "Stream not yet available"
 msgstr ""
 
 msgctxt "#32010"

@@ -60,8 +60,8 @@ msgid "Error fetching device id"
 msgstr "Device ID konnte nicht geladen werden"
 
 msgctxt "#32009"
-msgid "Match not yet available"
-msgstr "Das Spiel ist noch nicht verfügbar"
+msgid "Stream not yet available"
+msgstr "Der Stream ist noch nicht verfügbar"
 
 msgctxt "#32010"
 msgid "API"
