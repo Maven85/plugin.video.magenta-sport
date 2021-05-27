@@ -235,12 +235,27 @@ class ContentLoader(object):
 
         # parse data
         data = loads(raw_data)
-        data = data.get('data', {}).get('content', [])
+        data = data.get('data', dict())
 
-        lanes = []
-        if len(data) > 0:
-            for lane in data:
-                if len(lane.get('group_elements', [])) > 0 and lane.get('group_elements')[0].get('type').lower().find('lane') > -1:
+        for header in data.get('navigation').get('header'):
+            if header.get('target_type') == 'program':
+                url = self.utils.build_url({'for': sport, 'lane': header.get('target')})
+                title = header.get('title')
+                list_item = xbmcgui.ListItem(label=title)
+                list_item = self.item_helper.set_art(
+                    list_item=list_item,
+                    sport=sport)
+                xbmcplugin.addDirectoryItem(
+                    handle=self.plugin_handle,
+                    url=url,
+                    listitem=list_item,
+                    isFolder=True)
+
+        lanes = list()
+        content = data.get('content', list())
+        if content:
+            for lane in content:
+                if lane.get('group_elements', list()) and lane.get('group_elements')[0].get('type').lower().find('lane') > -1:
                     lanes.append(lane)
 
         # add directory item for each event
@@ -324,30 +339,42 @@ class ContentLoader(object):
         data = data.get('data', dict())
 
         # generate entries
-        if data and data.get('data'):
-            eventday = None;
-            mt = None
-            for item in data.get('data'):
-                if 'slots' in item:
-                    for slot in item.get('slots'):
-                        for event in slot.get('events'):
-                            if event.get('metadata').get('state') != 'post' and event.get('metadata', {}).get('scheduled_start', {}).get('utc_timestamp'):
-                                sdt = datetime.fromtimestamp(float(event.get('metadata', {}).get('scheduled_start', {}).get('utc_timestamp')))
-                                mt = self.item_helper.datetime_from_utc(event.get('metadata'), event)
-                                if eventday is None or eventday < sdt.date():
-                                    eventday = sdt.date()
-                                    list_item = xbmcgui.ListItem('[COLOR gold]{0}, {1}[/COLOR]'.format(mt[2], mt[0]))
-                                    list_item.setArt(dict(thumb='DefaultYear.png'))
-                                    xbmcplugin.addDirectoryItem(
-                                        handle=plugin_handle,
-                                        url=None,
-                                        listitem=list_item,
-                                        isFolder=False)
+        events = list()
+        if data:
+            if data.get('data'):
+                for item in data.get('data'):
+                    if item.get('slots'):
+                        for slot in item.get('slots'):
+                            for event in slot.get('events'):
+                                events.append(event)
+                    else:
+                        self.add_event_lane_item(sport, lane , item)
+            elif data.get('content'):
+                for content in data.get('content'):
+                    for group_element in content.get('group_elements'):
+                        for group_element_data in group_element.get('data'):
+                            for slot in group_element_data.get('slots'):
+                                for event in slot.get('events'):
+                                    events.append(event)
 
-                            self.add_event_lane_item(sport, lane, event, mt, False)
-                            mt = None
-                else:
-                    self.add_event_lane_item(sport, lane , item)
+        eventday = None;
+        mt = None
+        for event in events:
+            if event.get('metadata').get('state') != 'post' and event.get('metadata', {}).get('scheduled_start', {}).get('utc_timestamp'):
+                sdt = datetime.fromtimestamp(float(event.get('metadata', {}).get('scheduled_start', {}).get('utc_timestamp')))
+                mt = self.item_helper.datetime_from_utc(event.get('metadata'), event)
+                if eventday is None or eventday < sdt.date():
+                    eventday = sdt.date()
+                    list_item = xbmcgui.ListItem('[COLOR gold]{0}, {1}[/COLOR]'.format(mt[2], mt[0]))
+                    list_item.setArt(dict(thumb='DefaultYear.png'))
+                    xbmcplugin.addDirectoryItem(
+                        handle=plugin_handle,
+                        url=None,
+                        listitem=list_item,
+                        isFolder=False)
+
+                self.add_event_lane_item(sport, lane, event, mt, isFolder=not (event.get('metadata').get('state') == 'pre' and sdt > now))
+                mt = None
 
         xbmcplugin.endOfDirectory(plugin_handle)
 
