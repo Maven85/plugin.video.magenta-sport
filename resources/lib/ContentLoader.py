@@ -237,26 +237,26 @@ class ContentLoader(object):
         data = loads(raw_data)
         data = data.get('data', dict())
 
-        for header in data.get('navigation').get('header'):
-            if header.get('target_type') == 'program':
-                url = self.utils.build_url({'for': sport, 'lane': header.get('target')})
-                title = header.get('title')
-                list_item = xbmcgui.ListItem(label=title)
-                list_item = self.item_helper.set_art(
-                    list_item=list_item,
-                    sport=sport)
-                xbmcplugin.addDirectoryItem(
-                    handle=self.plugin_handle,
-                    url=url,
-                    listitem=list_item,
-                    isFolder=True)
-
         lanes = list()
         content = data.get('content', list())
         if content:
             for lane in content:
-                if lane.get('group_elements', list()) and lane.get('group_elements')[0].get('type').lower().find('lane') > -1:
-                    lanes.append(lane)
+                if lane.get('group_elements', list()):
+                    lane_type = lane.get('group_elements')[0].get('type').lower()
+                    if lane_type.find('lane') > -1:
+                        lanes.append(lane)
+                    elif lane_type == 'teasergrid':
+                        url = self.utils.build_url({'for': sport, 'lane': '/epg/content/{0}'.format(lane.get('group_elements')[0].get('content_id'))})
+                        title = 'Programm'
+                        list_item = xbmcgui.ListItem(label=title)
+                        list_item = self.item_helper.set_art(
+                            list_item=list_item,
+                            sport=sport)
+                        xbmcplugin.addDirectoryItem(
+                            handle=self.plugin_handle,
+                            url=url,
+                            listitem=list_item,
+                            isFolder=True)
 
         # add directory item for each event
         for lane in lanes:
@@ -356,6 +356,11 @@ class ContentLoader(object):
                             for slot in group_element_data.get('slots'):
                                 for event in slot.get('events'):
                                     events.append(event)
+            elif data.get('elements'):
+                for element in data.get('elements'):
+                    for slot in element.get('slots'):
+                        for event in slot.get('events'):
+                            events.append(event)
 
         if events:
             now = datetime.now()
