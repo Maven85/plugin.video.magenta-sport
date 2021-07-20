@@ -7,6 +7,7 @@
 """Kodi plugin for Magenta Sport (https://magentasport.de)"""
 
 from __future__ import unicode_literals
+from kodi_six.utils import PY2
 from ast import literal_eval
 from sys import argv
 from resources.lib.Cache import Cache
@@ -18,18 +19,14 @@ from resources.lib.Session import Session
 from resources.lib.Settings import Settings
 from resources.lib.Utils import Utils
 
-try:
-    from urllib.parse import parse_qsl
-except:
+if PY2:
     from urlparse import parse_qsl
+else:
+    from urllib.parse import parse_qsl
 
 # setup plugin base stuff
-try:
-    PLUGIN_HANDLE = int(argv[1])
-    KODI_BASE_URL = argv[0]
-except ValueError:
-    PLUGIN_HANDLE = 1
-    KODI_BASE_URL = ''
+PLUGIN_HANDLE = int(argv[1])
+KODI_BASE_URL = argv[0]
 
 # init plugin object structure
 CONSTANTS = Constants()

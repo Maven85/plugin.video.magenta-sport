@@ -7,16 +7,17 @@
 """Stores, loads & builds up a request session object. Provides login"""
 
 from __future__ import unicode_literals
+from kodi_six.utils import PY2
 from bs4 import BeautifulSoup
 from os import path, remove
 from requests import session, utils
 from time import time
 import xbmcvfs
 
-try:
-    import cPickle as pickle
-except ImportError:
-    import pickle
+if PY2:
+    from cPickle import dump, load, UnpicklingError
+else:
+    from pickle import dump, load, UnpicklingError
 
 
 class Session(object):
@@ -62,7 +63,7 @@ class Session(object):
     def save_session(self):
         """Persists the session, e.g. generates Cookie file"""
         with open(self.session_file, 'wb') as handle:
-            pickle.dump(
+            dump(
                 utils.dict_from_cookiejar(self._session.cookies),
                 handle)
 
@@ -91,10 +92,10 @@ class Session(object):
             _cookies = None
             try:
                 with open(self.session_file, 'rb') as handle:
-                    _cookies = utils.cookiejar_from_dict(pickle.load(handle))
+                    _cookies = utils.cookiejar_from_dict(load(handle))
             except EOFError:
                 _cookies = utils.cookiejar_from_dict({})
-            except (ValueError, pickle.UnpicklingError):
+            except (ValueError, UnpicklingError):
                 if self.settings.has_credentials():
                     USER, PASSWORD = self.settings.get_credentials()
                 else:

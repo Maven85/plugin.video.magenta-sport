@@ -142,7 +142,7 @@ class Settings(object):
         """
         Returns the users mac address
 
-        :param delay: retry delay in sec
+        :param delay: Retry delay in sec
         :type delay: int
         :returns:  string -- Devices MAC address
         """

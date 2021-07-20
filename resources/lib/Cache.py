@@ -6,12 +6,13 @@
 
 """Caching facade for KODIs window API"""
 from __future__ import unicode_literals
+from kodi_six.utils import PY2
 import xbmcgui, xbmc
 
-try:
-    import cPickle as pickle
-except ImportError:
-    import pickle
+if PY2:
+    from cPickle import dumps, loads, UnpicklingError
+else:
+    from pickle import dumps, loads, UnpicklingError
 
 
 class Cache(object):
@@ -27,11 +28,11 @@ class Cache(object):
         """Setup in memory cache"""
         window = self.__get_window_instance()
         try:
-            cached_items = pickle.loads(window.getProperty('memcache'))
-        except (EOFError, TypeError, pickle.UnpicklingError):
+            cached_items = loads(window.getProperty('memcache'))
+        except (EOFError, TypeError, UnpicklingError):
             cached_items = {}
         if len(cached_items) < 1:
-            window.setProperty('memcache', pickle.dumps(cached_items, 0))
+            window.setProperty('memcache', dumps(cached_items, 0))
         return cached_items
 
 
@@ -44,7 +45,7 @@ class Cache(object):
         :returns:  bool -- Matching item found
         """
         window = self.__get_window_instance()
-        cached_items = pickle.loads(window.getProperty('memcache'))
+        cached_items = loads(window.getProperty('memcache'))
         return cache_id in cached_items.keys()
 
 
@@ -57,7 +58,7 @@ class Cache(object):
         :returns:  mixed -- Cached item
         """
         window = self.__get_window_instance()
-        cached_items = pickle.loads(window.getProperty('memcache'))
+        cached_items = loads(window.getProperty('memcache'))
         if self.has_cached_item(cache_id) is not True:
             return None
         return cached_items[cache_id]
@@ -73,9 +74,9 @@ class Cache(object):
         :type contents: mixed
         """
         window = self.__get_window_instance()
-        cached_items = pickle.loads(window.getProperty('memcache'))
+        cached_items = loads(window.getProperty('memcache'))
         cached_items.update({cache_id: contents})
-        window.setProperty('memcache', pickle.dumps(cached_items, 0))
+        window.setProperty('memcache', dumps(cached_items, 0))
 
 
     @classmethod
