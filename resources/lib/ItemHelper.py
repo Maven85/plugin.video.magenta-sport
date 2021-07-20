@@ -149,15 +149,12 @@ class ItemHelper(object):
             image = images.get('editorial')
         if image != '':
             image = '{0}{1}'.format(base_url, image.replace(' ', '%20'))
-            try:
-                list_item.setArt({
-                    'poster': image,
-                    'landscape': image,
-                    'thumb': image,
-                    'fanart': image
-                })
-            except RuntimeError:
-                self.utils.log('`setArt` not available')
+            list_item.setArt({
+                'poster': image,
+                'landscape': image,
+                'thumb': image,
+                'fanart': image
+            })
         return list_item
 
 
@@ -171,16 +168,13 @@ class ItemHelper(object):
         :type sport: string
         :returns:  xbmcgui.ListItem -- Kodi list item
         """
-        try:
-            base_url = self.constants.get_base_url()
-            list_item.setArt({
-                'poster': '{0}{1}'.format(base_url, sport.get('poster')) if sport.get('poster') else None,
-                'landscape': '{0}{1}'.format(base_url, sport.get('fanart')) if sport.get('fanart') else None,
-                'thumb': '{0}{1}'.format(base_url, sport.get('logo')) if sport.get('logo') else None,
-                'fanart': '{0}{1}'.format(base_url, sport.get('fanart')) if sport.get('fanart') else None
-            })
-        except RuntimeError:
-            self.utils.log('`setArt` not available')
+        base_url = self.constants.get_base_url()
+        list_item.setArt({
+            'poster': '{0}{1}'.format(base_url, sport.get('poster')) if sport.get('poster') else None,
+            'landscape': '{0}{1}'.format(base_url, sport.get('fanart')) if sport.get('fanart') else None,
+            'thumb': '{0}{1}'.format(base_url, sport.get('logo')) if sport.get('logo') else None,
+            'fanart': '{0}{1}'.format(base_url, sport.get('fanart')) if sport.get('fanart') else None
+        })
         return list_item
 
 

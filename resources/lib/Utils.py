@@ -17,10 +17,10 @@ import xbmcaddon
 
 if PY2:
     from urllib import urlencode
-    from xbmc import translatePath as xbmcvfs_translatePath
+    from xbmc import translatePath
 else:
     from urllib.parse import urlencode
-    from xbmcvfs import translatePath as xbmcvfs_translatePath
+    from xbmcvfs import translatePath
 
 
 class Utils(object):
@@ -48,7 +48,7 @@ class Utils(object):
         :returns:  dict - Addon data
         """
         addon = self.get_addon()
-        base_data_path = xbmcvfs_translatePath(addon.getAddonInfo('profile'))
+        base_data_path = translatePath(addon.getAddonInfo('profile'))
         return dict(
             plugin=addon.getAddonInfo('name'),
             version=addon.getAddonInfo('version'),
