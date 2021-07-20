@@ -64,16 +64,16 @@ msgid "Stream not yet available"
 msgstr "Der Stream ist noch nicht verfügbar"
 
 msgctxt "#32010"
-msgid "API"
-msgstr "API"
+msgid "General"
+msgstr "Allgemein"
 
 msgctxt "#32011"
 msgid "Use API version"
 msgstr "API-Version verwenden"
 
-# msgctxt "#32012"
-# msgid ""
-# msgstr ""
+msgctxt "#32012"
+msgid "Show program from FC Bayern.tv Live under 'Live'?"
+msgstr "Programm aus 'FC Bayern.tv Live' unter 'Live' anzeigen?"
 
 msgctxt "#32013"
 msgid "Logout successful"

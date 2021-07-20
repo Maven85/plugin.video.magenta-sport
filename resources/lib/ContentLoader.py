@@ -11,7 +11,7 @@ from kodi_six.utils import py2_decode
 from datetime import datetime
 from json import loads
 from re import search
-import xml.etree.ElementTree as ET
+from xml.etree.ElementTree import fromstring
 import xbmcgui, xbmc
 import xbmcplugin
 
@@ -162,7 +162,7 @@ class ContentLoader(object):
         m3u_url = ''
         _session = self.session.get_session()
         xml_content = _session.get(stream_url)
-        root = ET.fromstring(xml_content.text)
+        root = fromstring(xml_content.text)
         for child in root:
             m3u_url = '{0}?hdnea={1}'.format(child.attrib.get('url', ''), child.attrib.get('auth', ''))
         return m3u_url
@@ -335,39 +335,48 @@ class ContentLoader(object):
         raw_data = _session.get(url).text
 
         # parse data
-        data = loads(raw_data)
-        data = data.get('data', dict())
+        data_json = loads(raw_data)
+        datalist = [data_json.get('data', dict())]
+
+        if self.utils.get_addon().getSetting('show_program_fcbayerntv') == 'true':
+            url = self.utils.build_api_url(url, query=dict(page=1, eventTreeId=1577))
+            raw_data = _session.get(url).text
+            data_json = loads(raw_data)
+            datalist.append(data_json.get('data', dict()))
 
         # generate entries
         events = list()
-        if data:
-            if data.get('data'):
-                for item in data.get('data'):
-                    if item.get('slots'):
-                        for slot in item.get('slots'):
-                            for event in slot.get('events'):
-                                events.append(event)
-                    else:
-                        self.add_event_lane_item(sport, lane , item)
-            elif data.get('content'):
-                for content in data.get('content'):
-                    for group_element in content.get('group_elements'):
-                        for group_element_data in group_element.get('data'):
-                            for slot in group_element_data.get('slots'):
+        if datalist:
+            for data in datalist:
+                if data.get('data'):
+                    for item in data.get('data'):
+                        if item.get('slots'):
+                            for slot in item.get('slots'):
                                 for event in slot.get('events'):
                                     events.append(event)
-            elif data.get('elements'):
-                for element in data.get('elements'):
-                    for slot in element.get('slots'):
-                        for event in slot.get('events'):
-                            events.append(event)
+                        else:
+                            self.add_event_lane_item(sport, lane , item)
+                elif data.get('content'):
+                    for content in data.get('content'):
+                        for group_element in content.get('group_elements'):
+                            for group_element_data in group_element.get('data'):
+                                for slot in group_element_data.get('slots'):
+                                    for event in slot.get('events'):
+                                        events.append(event)
+                elif data.get('elements'):
+                    for element in data.get('elements'):
+                        for slot in element.get('slots'):
+                            for event in slot.get('events'):
+                                events.append(event)
 
         if events:
+            events = sorted(events, key=lambda k: k.get('metadata').get('scheduled_start').get('utc_timestamp'))
             now = datetime.now()
             eventday = None;
             mt = None
+            added_events_url = list()
             for event in events:
-                if event.get('metadata').get('state') != 'post' and event.get('metadata').get('scheduled_start').get('utc_timestamp'):
+                if event.get('metadata').get('state') != 'post' and event.get('metadata').get('scheduled_start').get('utc_timestamp') and event.get('target') not in added_events_url:
                     sdt = datetime.fromtimestamp(float(event.get('metadata').get('scheduled_start').get('utc_timestamp')))
                     mt = self.item_helper.datetime_from_utc(event.get('metadata'), event)
                     if eventday is None or eventday < sdt.date():
@@ -382,6 +391,7 @@ class ContentLoader(object):
 
                     self.add_event_lane_item(sport, lane, event, mt, isFolder=not (event.get('metadata').get('state') == 'pre' and sdt > now))
                     mt = None
+                    added_events_url.append(event.get('target'))
 
         xbmcplugin.endOfDirectory(plugin_handle)
 
