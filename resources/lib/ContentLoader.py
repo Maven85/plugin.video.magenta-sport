@@ -216,7 +216,7 @@ class ContentLoader(object):
                     group_element.update(dict(data=None))
                     url = self.utils.build_url({'for': group_element, 'lane': group_element.get('data_url')})
                     list_item = xbmcgui.ListItem(label='[B]Live ({0})[/B]'.format(live_counter))
-                    list_item.setArt({'thumb': '{0}{1}'.format(self.constants.get_base_url(), live_data.get('data').get('metadata').get('web').get('image').replace(' ', '%20'))})
+                    list_item.setArt({'thumb': live_data.get('data').get('metadata').get('web').get('image').replace(' ', '%20')})
                     xbmcplugin.addDirectoryItem(
                         handle=self.plugin_handle,
                         url=url,
