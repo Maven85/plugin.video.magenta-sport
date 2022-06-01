@@ -212,7 +212,7 @@ class ContentLoader(object):
                     for data in group_element.get('data'):
                         for slot in data.get('slots'):
                             if slot.get('is_live'):
-                                live_counter += 1
+                                live_counter += len(slot.get('events'), dict())
                     group_element.update(dict(data=None))
                     url = self.utils.build_url({'for': group_element, 'lane': group_element.get('data_url')})
                     list_item = xbmcgui.ListItem(label='[B]Live ({0})[/B]'.format(live_counter))
