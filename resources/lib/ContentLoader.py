@@ -530,6 +530,9 @@ class ContentLoader(object):
                     title = video.get('title', '')
                     list_item = xbmcgui.ListItem(
                         label=title)
+                    list_item = self.item_helper.set_videoinfo(
+                        list_item,
+                        dict(title=title, genre=['Sports']))
                     list_item = self.item_helper.set_art(
                         list_item=list_item,
                         sport=sport,
@@ -740,10 +743,9 @@ class ContentLoader(object):
         :type list_item: xbmcgui.ListItem
         :param title: Title of the video
         :type title: string
-        :returns:  bool - EPG has slot type elements
+        :returns: xbmcgui.ListItem: Kodi list item
         """
         list_item.setProperty('IsPlayable', 'true')
-        list_item = self.item_helper.set_videoinfo(list_item, dict(title=title, genre='Sports'))
         return list_item
 
 
