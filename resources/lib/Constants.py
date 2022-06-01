@@ -20,8 +20,9 @@ API_BASE_URL = '{0}/api/{{0}}'.format(BASE_URL)
 API_NAVIGATION_PATH = '/navigation'
 API_SALT = '55!#r%Rn3%xn?U?PX*k'
 STREAM_ROUTE = '/service/player/v2/streamAccess'
-STREAM_PARAMS = 'videoId=%VIDEO_ID%&label=2780_hls'
+STREAM_PARAMS = 'videoId=%VIDEO_ID%&label=2780_hls&cdn=telekom_cdn'
 STREAM_DEFINITON_URL = '{0}{1}?{2}'.format(BASE_URL, STREAM_ROUTE, STREAM_PARAMS)
+LICENSE_URL = 'https://mrpw.dtts.vcas.eu2.verimatrixcloud.net:8063/?authenticator=%DRM_TOKEN%'
 DAY_NAMES = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Sonntag']
 
 # core event types
@@ -146,7 +147,7 @@ class Constants(object):
         that needs to be replaced in order to
         fetch the streams
 
-        :returns:  string -- EPG API URL
+        :returns:  string -- STREAM DEFINITION URL
         """
         return STREAM_DEFINITON_URL
 
@@ -199,3 +200,16 @@ class Constants(object):
         :returns:  dict -- List of german day names
         """
         return DAY_NAMES
+
+
+    @classmethod
+    def get_license_url(cls):
+        """
+        Returns the license URL,
+        used to get a valid license key.
+        It contains a `%DRM_TOKEN%` placeholder,
+        that needs to be replaced
+
+        :returns:  string -- LICENSE URL
+        """
+        return LICENSE_URL

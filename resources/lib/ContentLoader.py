@@ -128,6 +128,31 @@ class ContentLoader(object):
         return loads(_session.get(url).text)
 
 
+    def get_stream(self, video_id):
+        """
+        Fetches the stream url and drm token
+
+        :param video_id: Id of the video to fetch stream for
+        :type video_id: string
+        :returns:  dict - Stream
+        """
+        stream = dict()
+        _session = self.session.get_session()
+        stream_access = loads(_session.post(
+            self.constants.get_stream_definition_url().replace(
+                '%VIDEO_ID%',
+                str(video_id))
+            ).text)
+        if stream_access.get('status') == 'success':
+            stream.update(dict(
+                url=stream_access.get('data', {}).get('stream', {}).get('dash'),
+                drmToken=stream_access.get('data', {}).get('drmToken')
+            ))
+        elif stream_access.get('status') == 'error':
+            self.dialogs.show_ok_dialog(stream_access.get('message'))
+        return stream
+
+
     def get_stream_urls(self, video_id):
         """
         Fetches the stream urls document & parses them as well
@@ -537,20 +562,25 @@ class ContentLoader(object):
         :type target: string
         """
         self.utils.log('Play video: {0}'.format(video_id))
-        streams = self.get_stream_urls(video_id)
-        for stream in streams:
+        streams = self.get_stream(video_id)
+        if streams:
             play_item = xbmcgui.ListItem(
-                path=self.get_m3u_url(streams.get(stream)))
+                path=streams.get('url'))
 
             import inputstreamhelper
-            is_helper = inputstreamhelper.Helper('hls')
+            is_helper = inputstreamhelper.Helper('mpd', drm='widevine')
             if is_helper.check_inputstream():
                 # pylint: disable=E1101
                 play_item.setContentLookup(False)
-                play_item.setMimeType('application/vnd.apple.mpegurl')
-                play_item.setProperty('inputstream.adaptive.stream_headers',
-                    'user-agent={0}'.format(self.utils.get_user_agent()))
-                play_item.setProperty('inputstream.adaptive.manifest_type', 'hls')
+                play_item.setMimeType('application/dash+xml')
+                play_item.setProperty('inputstream.adaptive.stream_headers', 'user-agent={0}'.format(self.utils.get_user_agent()))
+                play_item.setProperty('inputstream.adaptive.license_type', 'com.widevine.alpha')
+                play_item.setProperty('inputstream.adaptive.manifest_type', 'mpd')
+                play_item.setProperty('inputstream.adaptive.license_key', '{0}|{1}|R{{SSM}}|'.format(
+                    self.constants.get_license_url().replace(
+                        '%DRM_TOKEN%',
+                        streams.get('drmToken')
+                    ), self.utils.get_user_agent()))
                 play_item.setProperty('inputstreamaddon' if self.utils.get_kodi_version() == 18 else 'inputstream', 'inputstream.adaptive')
             return xbmcplugin.setResolvedUrl(
                 self.plugin_handle,
