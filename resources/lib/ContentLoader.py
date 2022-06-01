@@ -325,11 +325,7 @@ class ContentLoader(object):
             url = self.utils.build_url({'date': date, 'for': _for})
             list_item = xbmcgui.ListItem(label=_date)
             list_item.setProperty('fanart_image', addon_data.get('fanart'))
-            list_item.setInfo('video', {
-                'date': date,
-                'title': title,
-                'plot': title,
-            })
+            list_item = self.item_helper.set_videoinfo(list_item, dict(date=date, title=title, plot=title))
             xbmcplugin.addDirectoryItem(
                 handle=plugin_handle,
                 url=url,
@@ -444,7 +440,7 @@ class ContentLoader(object):
         list_item = xbmcgui.ListItem(label=label)
         list_item = self.item_helper.set_art(list_item, sport, _for)
         info = dict(plot=self.item_helper.build_description(_for))
-        list_item.setInfo('video', info)
+        list_item = self.item_helper.set_videoinfo(list_item, info)
 
         xbmcplugin.addDirectoryItem(
             handle=self.plugin_handle,
@@ -747,9 +743,7 @@ class ContentLoader(object):
         :returns:  bool - EPG has slot type elements
         """
         list_item.setProperty('IsPlayable', 'true')
-        list_item.setInfo('video', {
-            'title': title,
-            'genre': 'Sports'})
+        list_item = self.item_helper.set_videoinfo(list_item, dict(title=title, genre='Sports'))
         return list_item
 
 

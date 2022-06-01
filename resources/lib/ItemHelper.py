@@ -264,3 +264,22 @@ class ItemHelper(object):
         match_time = match_datetime.strftime('%H:%M')
         match_weekday = self.constants.get_day_names()[match_datetime.weekday()]
         return (match_date, match_time, match_weekday)
+
+
+    def set_videoinfo(self, listitem, infolabels):
+
+        if self.utils.get_kodi_version() >= 20:
+            videoinfotag = listitem.getVideoInfoTag()
+
+            if infolabels.get('title') is not None:
+                videoinfotag.setTitle(infolabels.get('title'))
+            if infolabels.get('plot') is not None:
+                videoinfotag.setPlot(infolabels.get('plot'))
+            if infolabels.get('genre') is not None:
+                videoinfotag.setGenres(infolabels.get('genre'))
+            if infolabels.get('date') is not None:
+                videoinfotag.setDateAdded(infolabels.get('date'))
+        else:
+            listitem.setInfo('video', infolabels)
+
+        return listitem
