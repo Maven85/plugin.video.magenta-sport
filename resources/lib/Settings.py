@@ -45,14 +45,19 @@ class Settings(object):
         :type delay: int
         :returns:  string -- Unique secret
         """
+        device_id = ''
         mac_addr = self.__get_mac_address(delay=delay)
         if py2_encode(':') in mac_addr and delay == 2:
-            return uuid5(NAMESPACE_DNS, str(mac_addr)).bytes
-        else:
+            device_id = uuid5(NAMESPACE_DNS, str(mac_addr)).bytes
+        elif xbmc.getCondVisibility('System.Platform.Android'):
+            device_id = uuid5(NAMESPACE_DNS, str(self.get_android_uuid())).bytes
+        if device_id == '':
             error_msg = '[{0}] error: failed to get device id ({1})'
             self.utils.log(error_msg.format(self.addon_id, str(mac_addr)))
             self.dialogs.show_storing_credentials_failed()
             return 'UnsafeStaticSecret'
+
+        return device_id
 
 
     def encode(self, data):
@@ -154,3 +159,31 @@ class Settings(object):
             sleep(delay)
             mac_addr = xbmc.getInfoLabel('Network.MacAddress')
         return mac_addr
+
+
+    def get_android_uuid(self):
+        """
+        Returns device uuid by parsing the raw output of getprop
+
+        :returns:  string -- Devices uuid
+
+        """
+        from subprocess import PIPE as subprocess_PIPE, Popen as subprocess_Popen
+        from re import sub as re_sub
+        values = ''
+        try:
+            # Due to the new android security we cannot get any type of serials
+            sys_prop = ['ro.product.board', 'ro.product.brand', 'ro.product.device', 'ro.product.locale'
+                        'ro.product.manufacturer', 'ro.product.model', 'ro.product.platform',
+                        'persist.sys.timezone', 'persist.sys.locale', 'net.hostname']
+            # Warning net.hostname property starting from android 10 is deprecated return empty
+            with subprocess_Popen(['/system/bin/getprop'], stdout=subprocess_PIPE) as proc:
+                output_data = proc.communicate()[0].decode('utf-8')
+            list_values = output_data.splitlines()
+            for value in list_values:
+                value_splitted = re_sub(r'\[|\]|\s', '', value).split(':')
+                if value_splitted[0] in sys_prop:
+                    values += value_splitted[1]
+        except Exception:
+            pass
+        return values
