@@ -135,15 +135,6 @@ class Utils(object):
         return self.generate_hash256('{0}{1}{2}'.format(salt, utc, path))
 
 
-    def get_api_url(self):
-        """
-        Returns the API URL
-
-        :returns:  string -- API URL
-        """
-        return self.constants.get_api_base_url().format(self.get_addon().getSetting('api_version').lower())
-
-
     @classmethod
     def generate_hash224(cls, text):
         """

@@ -16,7 +16,7 @@ PRL = 'https://'
 BASE_URL = '{0}www.magentasport.de'.format(PRL)
 LOGIN_LINK = '{0}/service/auth/web/login?headto={0}'.format(BASE_URL)
 LOGIN_ENDPOINT = '{0}accounts.login.idm.telekom.com/factorx'.format(PRL)
-API_BASE_URL = '{0}/api/{{0}}'.format(BASE_URL)
+API_URL = '{0}/api/v3'.format(BASE_URL)
 API_NAVIGATION_PATH = '/navigation'
 API_SALT = '55!#r%Rn3%xn?U?PX*k'
 STREAM_ROUTE = '/service/player/v2/streamAccess'
@@ -119,13 +119,13 @@ class Constants(object):
 
 
     @classmethod
-    def get_api_base_url(cls):
+    def get_api_url(cls):
         """
-        Returns the API base URL
+        Returns the API URL
 
-        :returns:  string -- API base URL
+        :returns:  string -- API URL
         """
-        return API_BASE_URL
+        return API_URL
 
 
     @classmethod

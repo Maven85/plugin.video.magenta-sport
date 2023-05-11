@@ -123,7 +123,7 @@ class ContentLoader(object):
         :type _session: requests.session
         :returns:  dict - Parsed EPG
         """
-        url = '{0}{1}'.format(self.utils.get_api_url(), self.constants.get_sports_additional_infos().get(sport, {}).get('epg', ''))
+        url = '{0}{1}'.format(self.constants.get_api_url(), self.constants.get_sports_additional_infos().get(sport, {}).get('epg', ''))
         url = self.utils.build_api_url(url)
         return loads(_session.get(url).text)
 
@@ -197,12 +197,12 @@ class ContentLoader(object):
         """Creates the KODI list items for the sport selection"""
         self.utils.log('Sport selection')
         _session = self.session.get_session()
-        url = '{0}{1}'.format(self.utils.get_api_url(), self.constants.get_api_navigation_path())
+        url = '{0}{1}'.format(self.constants.get_api_url(), self.constants.get_api_navigation_path())
         url = self.utils.build_api_url(url)
         nav_data = loads(_session.get(url).text)
 
         # get live matches
-        url = '{0}{1}'.format(self.utils.get_api_url(), nav_data.get('data').get('header')[0].get('target'))
+        url = '{0}{1}'.format(self.constants.get_api_url(), nav_data.get('data').get('header')[0].get('target'))
         url = self.utils.build_api_url(url)
         live_data = loads(_session.get(url).text)
         for content in live_data.get('data').get('content'):
@@ -254,7 +254,7 @@ class ContentLoader(object):
         _session = self.session.get_session()
 
         # load sport page from Magenta Sport
-        url = '{0}{1}'.format(self.utils.get_api_url(), sport.get('target'))
+        url = '{0}{1}'.format(self.constants.get_api_url(), sport.get('target'))
         url = self.utils.build_api_url(url)
         raw_data = _session.get(url).text
 
@@ -351,7 +351,7 @@ class ContentLoader(object):
         plugin_handle = self.plugin_handle
 
         # load sport page from Magenta Sport
-        url = '{0}{1}'.format(self.utils.get_api_url(), lane)
+        url = '{0}{1}'.format(self.constants.get_api_url(), lane)
         url = self.utils.build_api_url(url)
         raw_data = _session.get(url).text
 
@@ -506,7 +506,7 @@ class ContentLoader(object):
         _session = self.session.get_session()
 
         # load sport page from Magenta Sport
-        url = '{0}{1}'.format(self.utils.get_api_url(), target)
+        url = '{0}{1}'.format(self.constants.get_api_url(), target)
         url = self.utils.build_api_url(url)
         raw_data = _session.get(url).text
 
