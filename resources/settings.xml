@@ -7,7 +7,6 @@
         <setting id="password" type="text" default="" visible="false"/>
     </category>
     <category label="32010">
-        <setting id="api_version" type="labelenum" label="32011" values="V2|V3" default="V2"/>
         <setting id="show_program_fcbayerntv" type="bool" label="32012" default="false"/>
     </category>
 </settings>
