@@ -22,7 +22,7 @@ API_SALT = '55!#r%Rn3%xn?U?PX*k'
 STREAM_ROUTE = '/service/player/v2/streamAccess'
 STREAM_PARAMS = 'videoId=%VIDEO_ID%&label=2780_hls&cdn=telekom_cdn'
 STREAM_DEFINITON_URL = '{0}{1}?{2}'.format(BASE_URL, STREAM_ROUTE, STREAM_PARAMS)
-LICENSE_URL = 'https://mrpw.dtts.vcas.eu2.verimatrixcloud.net:8063/?authenticator=%DRM_TOKEN%'
+LICENSE_URL = 'https://multidrm.core.verimatrixcloud.net/widevine?authorization=%DRM_TOKEN%'
 DAY_NAMES = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Sonntag']
 
 # core event types
