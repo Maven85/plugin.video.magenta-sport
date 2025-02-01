@@ -146,7 +146,7 @@ class ContentLoader(object):
         if stream_access.get('status') == 'success':
             stream.update(dict(
                 url=stream_access.get('data', {}).get('stream', {}).get('dash'),
-                drmToken=stream_access.get('data', {}).get('drmToken')
+                drmToken=stream_access.get('data', {}).get('multiDrm', {}).get('token')
             ))
         elif stream_access.get('status') == 'error':
             self.dialogs.show_ok_dialog(stream_access.get('message'))
