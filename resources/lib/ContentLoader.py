@@ -726,11 +726,11 @@ class ContentLoader(object):
         :type src: string
         :returns:  tuple - Stream & customer id
         """
-        stream_id_raw = search('stream-id=.*', src)
+        stream_id_raw = search(r'stream-id=.*', src)
         if stream_id_raw is None:
             return (None, None)
-        stream_id = search('stream-id=.*', src).group(0).split('"')[1]
-        customer_id = search('customer-id=.*', src).group(0).split('"')[1]
+        stream_id = search(r'stream-id=.*', src).group(0).split('"')[1]
+        customer_id = search(r'customer-id=.*', src).group(0).split('"')[1]
         return (stream_id, customer_id)
 
 
