@@ -124,3 +124,16 @@ class Dialogs(object):
             'Magenta Sport {0}'.format(self.utils.get_local_string(string_id=32014)),
             self.utils.get_local_string(string_id=32015),
             xbmcgui.NOTIFICATION_INFO, 5000)
+
+
+    def show_2fa_dialog(self):
+        """
+        Shows 2fa input
+
+        :returns:  string - 2fa code
+        """
+        dlg = xbmcgui.Dialog()
+        return dlg.input(
+            self.utils.get_local_string(string_id=32016),
+            type=xbmcgui.INPUT_NUMERIC,
+            option=xbmcgui.ALPHANUM_HIDE_INPUT)
