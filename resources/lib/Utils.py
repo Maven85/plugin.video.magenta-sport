@@ -112,7 +112,7 @@ class Utils(object):
         :type query: dict
         :returns:  string - Url
         """
-        match = search('.*?(\/api\/v3\/[^?]*)', url)
+        match = search(r'.*?(\/api\/v3\/[^?]*)', url)
         if match:
             path = match.group(1)
             query.update(dict(token=self.generate_api_token(path)))
