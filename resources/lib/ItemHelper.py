@@ -170,10 +170,10 @@ class ItemHelper(object):
         """
         base_url = self.constants.get_base_url()
         list_item.setArt({
-            'poster': '{0}{1}'.format(base_url, sport.get('poster')) if sport.get('poster') else None,
-            'landscape': '{0}{1}'.format(base_url, sport.get('fanart')) if sport.get('fanart') else None,
-            'thumb': '{0}{1}'.format(base_url, sport.get('logo')) if sport.get('logo') else None,
-            'fanart': '{0}{1}'.format(base_url, sport.get('fanart')) if sport.get('fanart') else None
+            'poster': '{0}{1}'.format(base_url, sport.get('poster').replace(' ', '%20')) if sport.get('poster') else None,
+            'landscape': '{0}{1}'.format(base_url, sport.get('fanart').replace(' ', '%20')) if sport.get('fanart') else None,
+            'thumb': '{0}{1}'.format(base_url, sport.get('logo').replace(' ', '%20')) if sport.get('logo') else None,
+            'fanart': '{0}{1}'.format(base_url, sport.get('fanart').replace(' ', '%20')) if sport.get('fanart') else None
         })
         return list_item
 
