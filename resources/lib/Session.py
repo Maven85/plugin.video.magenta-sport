@@ -10,6 +10,7 @@ from __future__ import unicode_literals
 from kodi_six.utils import PY2
 from bs4 import BeautifulSoup
 from os import path, remove
+from re import search
 from requests import session, utils
 from time import time
 import xbmcvfs
@@ -24,7 +25,7 @@ class Session(object):
     """Stores, loads & builds up a request session object. Provides login"""
 
 
-    def __init__(self, constants, util, settings):
+    def __init__(self, constants, util, settings, dialogs):
         """
         Injects instances, sets session file & loads initial session
 
@@ -38,6 +39,7 @@ class Session(object):
         self.constants = constants
         self.utils = util
         self.settings = settings
+        self.dialogs = dialogs
         addon = self.utils.get_addon()
         self.session_file = self.utils.get_addon_data().get('cookie_path')
         self._session = self.load_session()
@@ -151,6 +153,21 @@ class Session(object):
             res = self.get_session().post(
                 self.constants.get_login_endpoint(),
                 data=payload)
+
+        if search(r'<scale-text-field.*?name="totp"', res.text):
+            totp = self.dialogs.show_2fa_dialog()
+            if totp:
+                soup = BeautifulSoup(res.text, 'html.parser')
+                # find all <input/> items in the login form & grep their data
+                payload = {}
+                for item in soup.find(id='login').find_all('input'):
+                    if item.attrs.get('name') and (item.attrs.get('name').startswith('xsrf') or item.attrs.get('name') == 'tid'):
+                        payload[item.attrs.get('name')] = item.attrs.get('value', '')
+                payload['totp'] = totp
+                payload['next'] = ''
+                res = self.get_session().post(
+                    self.constants.get_login_endpoint(),
+                    data=payload)
 
         success = self._session.cookies.get_dict().get('displayname')
         if success:

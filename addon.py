@@ -35,7 +35,7 @@ UTILS = Utils(constants=CONSTANTS, kodi_base_url=KODI_BASE_URL)
 DIALOGS = Dialogs(utils=UTILS)
 ITEM_HELPER = ItemHelper(constants=CONSTANTS, utils=UTILS)
 SETTINGS = Settings(utils=UTILS, dialogs=DIALOGS, constants=CONSTANTS)
-SESSION = Session(constants=CONSTANTS, util=UTILS, settings=SETTINGS)
+SESSION = Session(constants=CONSTANTS, util=UTILS, settings=SETTINGS, dialogs=DIALOGS)
 CONTENT_LOADER = ContentLoader(
     cache=CACHE,
     session=SESSION,

@@ -86,3 +86,7 @@ msgstr ""
 msgctxt "#32015"
 msgid "Login successful"
 msgstr ""
+
+msgctxt "#32016"
+msgid "Verification code from authentication app"
+msgstr ""
