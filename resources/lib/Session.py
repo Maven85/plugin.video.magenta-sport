@@ -13,7 +13,8 @@ from os import path, remove
 from re import search
 from requests import session, utils
 from time import time
-import xbmcvfs
+from xbmcvfs import Stat
+from xbmc import Monitor
 
 if PY2:
     from cPickle import dump, load, UnpicklingError
@@ -44,6 +45,7 @@ class Session(object):
         self.session_file = self.utils.get_addon_data().get('cookie_path')
         self._session = self.load_session()
         self.load_session_cookies()
+        self.monitor = Monitor()
 
 
     def get_session(self):
@@ -120,7 +122,7 @@ class Session(object):
         """
         # check if the suer is already logged in
         if forceLogin is False and path.isfile(self.session_file):
-            file_time = xbmcvfs.Stat(self.session_file).st_mtime()
+            file_time = Stat(self.session_file).st_mtime()
             if (time() - file_time) / 3600 < 24 and self.get_session().cookies.get('displayname'):
                 return True
             else:
@@ -139,7 +141,6 @@ class Session(object):
             # overwrite user & password fields with our settings data
             if i == 0:
                 payload['pw_usr'] = user
-                payload['hidden_pwd'] = ''
             else:
                 payload['hidden_usr'] = user
                 payload['pw_pwd'] = password
@@ -153,6 +154,11 @@ class Session(object):
             res = self.get_session().post(
                 self.constants.get_login_endpoint(),
                 data=payload)
+            if i == 0:
+                matcher = search(r'href="(\S*\/di\.css\S*?)"', res.text)
+                if matcher:
+                    self.get_session().get(f'https:{matcher.group(1)}')
+                    self.monitor.waitForAbort(5)
 
         if search(r'<scale-text-field.*?name="totp"', res.text):
             totp = self.dialogs.show_2fa_dialog()
