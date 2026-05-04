@@ -7,13 +7,18 @@
 """Fetches and parses content from the Magenta Sport API & website"""
 
 from __future__ import unicode_literals
-from kodi_six.utils import py2_decode
+from kodi_six.utils import PY2, py2_decode
 from datetime import datetime
-from json import loads
+from json import dumps, loads
 from re import search
 from xml.etree.ElementTree import fromstring
 import xbmcgui, xbmc
 import xbmcplugin
+
+if PY2:
+    from urllib import urlencode
+else:
+    from urllib.parse import urlencode
 
 
 class ContentLoader(object):
@@ -564,23 +569,57 @@ class ContentLoader(object):
         streams = self.get_stream(video_id)
         if streams:
             play_item = xbmcgui.ListItem(
-                path=streams.get('url'))
+                path=streams.get('url')
+            )
 
             import inputstreamhelper
             is_helper = inputstreamhelper.Helper('mpd', drm='widevine')
             if is_helper.check_inputstream():
                 # pylint: disable=E1101
+                kodi_version = self.utils.get_kodi_version()
                 play_item.setContentLookup(False)
                 play_item.setMimeType('application/dash+xml')
-                play_item.setProperty('inputstream.adaptive.stream_headers', 'user-agent={0}'.format(self.utils.get_user_agent()))
-                play_item.setProperty('inputstream.adaptive.license_type', 'com.widevine.alpha')
-                play_item.setProperty('inputstream.adaptive.manifest_type', 'mpd')
-                play_item.setProperty('inputstream.adaptive.license_key', '{0}|{1}|R{{SSM}}|'.format(
-                    self.constants.get_license_url().replace(
-                        '%DRM_TOKEN%',
-                        streams.get('drmToken')
-                    ), self.utils.get_user_agent()))
-                play_item.setProperty('inputstreamaddon' if self.utils.get_kodi_version() == 18 else 'inputstream', 'inputstream.adaptive')
+                play_item.setProperty('inputstreamaddon' if kodi_version == 18 else 'inputstream', 'inputstream.adaptive')
+                license_headers = urlencode({
+                    'content-type': 'application/octet-stream',
+                    'user-agent': self.utils.get_user_agent()
+                })
+                license_url = self.constants.get_license_url().replace(
+                    '%DRM_TOKEN%',
+                    streams.get('drmToken')
+                )
+                if kodi_version >= 22:
+                    drm_cfg = {
+                        'com.widevine.alpha': {
+                            'license': {
+                                'server_url': license_url,
+                                'req_headers': license_headers
+                            }
+                        }
+                    }
+                    play_item.setProperty('inputstream.adaptive.drm', dumps(drm_cfg))
+                elif kodi_version == 21:
+                    drm_cfg = {
+                        'DRM KeySystem': 'com.widevine.alpha',
+                        'License server url': license_url,
+                        'License headers': license_headers
+                    }
+                    play_item.setProperty('inputstream.adaptive.drm_legacy', '|'.join(drm_cfg.values()))
+                else:
+                    drm_cfg = {
+                        'License server url': license_url,
+                        'License headers': license_headers,
+                        'License post data': 'R{SSM}',
+                        'License response data': ''
+                    }
+                    play_item.setProperty('inputstream.adaptive.license_type', 'com.widevine.alpha')
+                    play_item.setProperty('inputstream.adaptive.license_key', '|'.join(drm_cfg.values()))
+                    play_item.setProperty('inputstream.adaptive.manifest_type', 'mpd')
+                if kodi_version >= 22:
+                    play_item.setProperty('inputstream.adaptive.common_headers', urlencode({'user-agent': self.utils.get_user_agent()}))
+                else:
+                    play_item.setProperty('inputstream.adaptive.manifest_headers', urlencode({'user-agent': self.utils.get_user_agent()}))
+                    play_item.setProperty('inputstream.adaptive.stream_headers', urlencode({'user-agent': self.utils.get_user_agent()}))
             return xbmcplugin.setResolvedUrl(
                 self.plugin_handle,
                 True,
